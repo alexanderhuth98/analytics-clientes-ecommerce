@@ -1,13 +1,16 @@
 # Analytics de clientes e-commerce
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml)
+[![Pages](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml)
 
 Caso de Data Analytics sobre el **Brazilian E-Commerce Public Dataset by Olist**.
 Construye una vista reproducible de clientes, valor, volumen, amplitud de compra y
 experiencia de entrega, con DuckDB, SQL y artefactos agregados aptos para portfolio.
 
-GitHub Pages aun no esta publicado. El dashboard generado se conserva en `site/` y la
-captura inferior documenta el build de referencia.
+El [dashboard publico](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
+se despliega desde `site/` mediante GitHub Pages; la captura inferior documenta el build
+de referencia.
 
 ![Dashboard ejecutivo](docs/images/dashboard_overview.png)
 
