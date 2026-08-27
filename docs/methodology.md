@@ -111,9 +111,12 @@ de producto, vendedor, geografia o seleccion de quien responde pueden confundirl
 | Vendedor | Al menos 30 pedidos. |
 | Entrega mensual/estado | Al menos 30 pedidos. |
 
-Los grupos menores quedan `SUPPRESSED`, no se eliminan de los CSV de control ni se
-convierten a cero. El resumen unidimensional de segmentos es publicable por diseno; la
-categoria `UNKNOWN` se muestra como limitacion.
+Los grupos menores quedan `SUPPRESSED` en el warehouse y en los CSV, Parquet y Excel
+locales de `outputs/`; no se convierten a cero. La exportacion publica aplica una
+allowlist: `portfolio_data/` y el HTML de `site/` solo reciben filas exactamente
+`PUBLISHABLE`. Cualquier otro estado se elimina por fila completa, incluidos etiqueta o
+identificador y todas sus metricas. El resumen unidimensional de segmentos es publicable
+por diseno; la categoria `UNKNOWN` se muestra como limitacion.
 
 ## Quality gates
 

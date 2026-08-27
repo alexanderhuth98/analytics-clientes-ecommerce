@@ -15,8 +15,9 @@ Kaggle API
   -> Power BI sobre portfolio_data/
 ```
 
-`data/`, Parquet, Excel y otros binarios no se versionan. `portfolio_data/` contiene solo
-agregados anonimizados. `site/` contiene los HTML generados que puede desplegar Pages.
+`data/`, Parquet, Excel y otros binarios no se versionan. `outputs/` conserva los marts
+completos localmente. `portfolio_data/` contiene solo agregados anonimizados con cobertura
+publicable. `site/` contiene los HTML generados que puede desplegar Pages.
 
 ## Capas
 
@@ -94,5 +95,7 @@ marts. No debe interpretarse como promedio estrictamente ponderado por pedido.
 ## Frontera publica
 
 No se publican raw, DuckDB, Parquet detallado, texto de reviews ni filas de cliente,
-pedido o pago. Power BI y el dashboard consumen marts agregados. Los grupos comparativos
-con menos de 30 observaciones quedan `SUPPRESSED` segun la unidad definida por cada mart.
+pedido o pago. Power BI y el dashboard consumen una vista publica de los marts agregados.
+Los grupos comparativos con menos de 30 observaciones quedan `SUPPRESSED` internamente;
+la exportacion elimina su fila completa, incluidos identificadores y metricas, antes de
+escribir `portfolio_data/` o renderizar `site/`.

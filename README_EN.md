@@ -38,9 +38,24 @@ uv run ecommerce-clientes all --as-of 2018-10-17
 See the [documentation index](docs/README.md), [methodology](docs/methodology.md),
 [data access](docs/data_access.md) and [operations guide](docs/operations.md).
 
-The repository includes 49 tests. CI enforces Ruff, pytest with the declared 80% coverage
+## Public data boundary
+
+The local `outputs/` directory retains complete aggregate marts for analytical controls.
+Versioned `portfolio_data/` CSVs and generated `site/` HTML are built from a separate
+public view: for every table with `coverage_status`, only rows exactly marked
+`PUBLISHABLE` are included. Rows for groups below the applicable threshold of 30
+customers or orders are removed in full, including their labels/identifiers and metrics;
+their values are not replaced with zero. Raw Olist rows, review text, ZIP files, DuckDB,
+Parquet, Excel, PBIX/PBIT files and credentials are not public artifacts.
+
+The canonical public repository is
+[GitHub](https://github.com/alexanderhuth98/analytics-clientes-ecommerce). GitLab is used
+only as a private development origin and is not the package's public repository URL.
+
+The repository includes 50 tests. CI enforces Ruff, pytest with the declared 80% coverage
 threshold, dependency auditing and secret scanning.
 
-Project code and documentation are MIT licensed. The Kaggle metadata endpoint reported
-`CC BY-NC-SA 4.0` for the source on `2026-08-20`; verify the current source terms before
-redistributing data. MIT does not relicense the Olist dataset.
+Project code and documentation are MIT licensed. The Kaggle metadata endpoint still
+reported `CC BY-NC-SA 4.0` for the source when checked on `2026-08-27`; this records
+Kaggle's displayed metadata and is not a legal guarantee. Verify the current source terms
+before redistributing data. MIT does not relicense the Olist dataset.

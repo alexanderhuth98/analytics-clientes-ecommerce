@@ -23,8 +23,9 @@ dependencies = [
 ecommerce-clientes = "ecommerce_clientes.pipeline:main"
 
 [project.urls]
-Repository = "https://gitlab.com/alexander-huth-data-analytics/analytics-clientes-ecommerce"
-Documentation = "https://gitlab.com/alexander-huth-data-analytics/analytics-clientes-ecommerce/-/tree/main/docs"
+Repository = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce"
+Documentation = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce/tree/main/docs"
+Issues = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce/issues"
 
 [project.optional-dependencies]
 dev = [

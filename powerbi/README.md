@@ -5,8 +5,8 @@
 - Objetivo: sintetizar escala, mix de clientes, experiencia de entrega y calidad del build de ecommerce.
 - Audiencia: dirección comercial, customer analytics, operaciones y experiencia de cliente.
 - Grano: mes, segmento agregado, categoría, estado de entrega y vendedor anonimizado.
-- Privacidad: no se cargan filas de cliente, pedido, pago o review; sólo los ocho CSV agregados de `portfolio_data/`.
-- Regla de cobertura: las medidas comparativas filtran `coverage_status = PUBLISHABLE`; `SUPPRESSED` sólo aparece como control de cobertura.
+- Privacidad: no se cargan filas de cliente, pedido, pago o review; sólo los ocho CSV públicos agregados de `portfolio_data/`.
+- Regla de cobertura: el pipeline excluye por fila completa todo estado distinto de `PUBLISHABLE` antes de escribir los CSV; Power BI no recibe identificadores ni métricas de grupos `SUPPRESSED`.
 
 ## Artefactos
 
@@ -24,14 +24,14 @@ No se incluyen `.pbix`, cachés `.pbi/`, extractos ni otros binarios.
 |---|---:|---|
 | `executive_monthly.csv` | 25 | Serie mensual de pedidos, GMV y experiencia. |
 | `customer_segment_summary.csv` | 10 | Resumen por dimensión y etiqueta de segmentación. |
-| `customer_cross_segment.csv` | 29 | Cruces anonimizados de valor, unidades y amplitud. |
-| `customer_category_affinity.csv` | 211 | Afinidad agregada entre categoría y segmento de valor. |
-| `category_performance.csv` | 72 | Mix, valor y review por categoría. |
-| `delivery_experience.csv` | 48 | Experiencia mensual por estado de entrega. |
-| `seller_performance.csv` | 2.970 | Desempeño agregado por vendedor anonimizado. |
+| `customer_cross_segment.csv` | 19 | Cruces anonimizados de valor, unidades y amplitud. |
+| `customer_category_affinity.csv` | 146 | Afinidad agregada entre categoría y segmento de valor. |
+| `category_performance.csv` | 63 | Mix, valor y review por categoría. |
+| `delivery_experience.csv` | 40 | Experiencia mensual por estado de entrega. |
+| `seller_performance.csv` | 627 | Desempeño agregado por vendedor anonimizado. |
 | `quality_checks.csv` | 15 | Controles y advertencias del build. |
 
-Las claves técnicas `build_id`, `segmentation_version` y `seller_id` están ocultas. El identificador de vendedor sólo se usa para un conteo distinto; ningún visual muestra detalle de vendedor.
+Las claves técnicas `build_id`, `segmentation_version` y `seller_id` están ocultas. El identificador de vendedor sólo se usa para un conteo distinto de vendedores publicables; ningún visual muestra detalle de vendedor. El validador falla si un CSV con `coverage_status` contiene un valor diferente de `PUBLISHABLE`.
 
 ## Parámetro de datos
 
@@ -70,7 +70,7 @@ La tabla `Medidas` incluye, entre otras:
 - Clientes: `Clientes elegibles`, `Clientes alto valor`, `Share GMV alto valor`, `Clientes una categoria`.
 - Mix: `GMV por segmento`, `GMV afinidad`, `GMV categorias`.
 - Operación: `Tasa de entrega tardia`, `Tasa tardia publicable`, `Review a tiempo`, `Review tardia`.
-- Cobertura: `Vendedores publicables`, `Filas suprimidas`.
+- Cobertura: `Vendedores publicables`; `Filas suprimidas` permanece como control y debe ser cero en los CSV públicos.
 - Calidad: `Fallas altas`, `Advertencias medias`, `Tasa controles aprobados`.
 
 `Clientes elegibles` filtra exclusivamente la dimensión `VALUE`; sumar las tres dimensiones de `customer_segment_summary` triplicaría la población. `GMV` excluye flete y no se presenta como ingreso, margen o beneficio.

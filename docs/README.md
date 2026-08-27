@@ -28,7 +28,7 @@ pueda revisar sin depender del dashboard o del warehouse local.
 - Build: `4877d616-bad1-48d6-bffb-17005001d164`.
 - Corte: `2018-10-17`.
 - Fuente procesada: 9 tablas y `1.550.922` filas.
-- Exportacion publica: 8 CSV y `3.380` filas agregadas.
+- Exportacion publica: 8 CSV y `945` filas agregadas con cobertura publicable.
 - Calidad: 15 controles, 0 fallas `HIGH`, 4 advertencias `MEDIUM`.
 - Informes: `reports/2018-10-17/`.
 

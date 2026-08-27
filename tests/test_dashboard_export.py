@@ -138,6 +138,28 @@ def test_write_excel_escapes_formula_injection_and_truncates_sheet_names(tmp_pat
     assert sheet["B2"].value == 1
 
 
+def test_public_tables_remove_entire_non_publishable_rows():
+    tables = {
+        "controlled": pd.DataFrame(
+            [
+                {"seller_id": "safe", "metric": 30, "coverage_status": "PUBLISHABLE"},
+                {"seller_id": "small", "metric": 1, "coverage_status": "SUPPRESSED"},
+                {"seller_id": "other", "metric": 5, "coverage_status": "DIRECTIONAL"},
+            ]
+        ),
+        "uncontrolled": pd.DataFrame([{"metric": 10}]),
+    }
+
+    public = export._public_tables(tables)
+
+    assert public["controlled"].to_dict("records") == [
+        {"seller_id": "safe", "metric": 30, "coverage_status": "PUBLISHABLE"}
+    ]
+    assert public["uncontrolled"].equals(tables["uncontrolled"])
+    assert public["controlled"] is not tables["controlled"]
+    assert public["uncontrolled"] is not tables["uncontrolled"]
+
+
 def test_export_all_publishes_real_tables_dashboard_manifest_and_portfolio(
     isolated_paths, snapshot_factory
 ):
@@ -178,11 +200,23 @@ def test_export_all_publishes_real_tables_dashboard_manifest_and_portfolio(
     assert manifest["build_id"] == built.build_id
     assert set(manifest["rows"]) == set(export.EXPORT_TABLES)
     exported = pd.read_csv(isolated_paths.outputs / "executive_monthly.csv")
+    internal_cross = pd.read_csv(isolated_paths.outputs / "customer_cross_segment.csv")
+    public_cross = pd.read_csv(isolated_paths.portfolio / "customer_cross_segment.csv")
     with duckdb.connect(str(isolated_paths.database), read_only=True) as connection:
         warehouse_rows = connection.execute(
             "SELECT COUNT(*) FROM mart_executive_monthly"
         ).fetchone()[0]
     assert len(exported) == warehouse_rows
+    assert "SUPPRESSED" in set(internal_cross["coverage_status"])
+    assert set(public_cross["coverage_status"]) <= {"PUBLISHABLE"}
+    public_categories = pd.read_csv(isolated_paths.portfolio / "category_performance.csv")
+    assert set(public_categories["coverage_status"]) == {"PUBLISHABLE"}
+
+    for path in isolated_paths.portfolio.glob("*.csv"):
+        public_frame = pd.read_csv(path)
+        if "coverage_status" in public_frame:
+            assert set(public_frame["coverage_status"]) <= {"PUBLISHABLE"}
+        assert "SUPPRESSED" not in path.read_text(encoding="utf-8")
 
 
 def test_export_handles_valid_small_build_without_publishable_groups(isolated_paths, built_compact):

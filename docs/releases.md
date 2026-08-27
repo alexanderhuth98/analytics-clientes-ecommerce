@@ -27,7 +27,8 @@ entrar al historial.
 5. Ejecutar Ruff y pytest con cobertura; no publicar como validado si no pasan.
 6. Comparar conteos y GMV con el informe y los CSV de portfolio.
 7. Ejecutar el validador PBIP y refrescar manualmente en Desktop si se distribuye Power BI.
-8. Revisar que los grupos `SUPPRESSED` no aparezcan en rankings.
+8. Confirmar que `portfolio_data/` y `site/` no contengan filas, identificadores ni
+   metricas de grupos `SUPPRESSED`.
 9. Ejecutar auditoria de dependencias y scan de secretos.
 10. Verificar nuevamente la atribucion y licencia expuesta por Kaggle.
 11. Revisar que README y docs indiquen el nuevo build/corte.

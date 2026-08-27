@@ -87,6 +87,14 @@ foreach ($tableName in $requiredSources) {
     $rowCounts[$tableName] = $records.Count
 
     $csvColumns = @($records[0].PSObject.Properties.Name)
+    if ("coverage_status" -in $csvColumns) {
+        $nonPublicRows = @(
+            $records | Where-Object { $_.coverage_status -ne "PUBLISHABLE" }
+        )
+        if ($nonPublicRows.Count -gt 0) {
+            throw "$tableName.csv contiene filas no publicables: $($nonPublicRows.Count)"
+        }
+    }
     $sourceColumns = @(
         $modelDefinition.model.tables |
             Where-Object { $_.name -eq $tableName } |

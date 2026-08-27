@@ -61,7 +61,7 @@ Atribucion recomendada:
 > Brazilian E-Commerce Public Dataset by Olist, disponible en Kaggle bajo el slug
 > `olistbr/brazilian-ecommerce`.
 
-El endpoint de metadata de Kaggle, consultado el `2026-08-20`, expone
+El endpoint de metadata de Kaggle, consultado nuevamente el `2026-08-27`, expone
 `CC BY-NC-SA 4.0` en el campo `licenseName`. Esta documentacion registra lo que publica
 Kaggle en esa fecha; no sustituye la revision de los terminos vigentes ni asesoria legal.
 Antes de redistribuir raw o derivados, vuelva a consultar la pagina y la metadata.
@@ -78,4 +78,5 @@ Aunque la fuente declara datos anonimizados, el proyecto aplica minimizacion adi
 - No publica textos de review ni coordenadas detalladas.
 - Los CSV de portfolio son agregados.
 - Los identificadores de vendedor permanecen anonimos y no se muestran en visuales.
-- Los cruces pequenos se suprimen con threshold 30.
+- Los grupos pequenos se marcan internamente con reglas de threshold 30 y su fila completa
+  se excluye de CSV publicos y HTML, incluidos identificadores y metricas.

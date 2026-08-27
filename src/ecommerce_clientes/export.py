@@ -119,6 +119,17 @@ def _write_excel(path: Path, tables: dict[str, pd.DataFrame]) -> None:
             safe.to_excel(writer, sheet_name=name[:31], index=False)
 
 
+def _public_tables(tables: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+    return {
+        name: (
+            frame.loc[frame["coverage_status"].eq("PUBLISHABLE")].copy()
+            if "coverage_status" in frame.columns
+            else frame.copy()
+        )
+        for name, frame in tables.items()
+    }
+
+
 def export_all() -> ExportResult:
     ensure_directories()
     validation = validate()
@@ -135,8 +146,9 @@ def export_all() -> ExportResult:
         frame.to_csv(staging / f"{name}.csv", index=False, encoding="utf-8")
         frame.to_parquet(staging / f"{name}.parquet", index=False)
 
-    desktop_html = render_dashboard(tables)
-    mobile_html = render_dashboard(tables, mobile=True)
+    public_tables = _public_tables(tables)
+    desktop_html = render_dashboard(public_tables)
+    mobile_html = render_dashboard(public_tables, mobile=True)
     (staging / "dashboard_clientes_ecommerce.html").write_text(desktop_html, encoding="utf-8")
     (staging / "dashboard_mobile.html").write_text(mobile_html, encoding="utf-8")
     _write_excel(staging / "analytics_clientes_ecommerce.xlsx", tables)
@@ -160,8 +172,8 @@ def export_all() -> ExportResult:
         shutil.copy2(path, destination)
 
     PORTFOLIO_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    for name in EXPORT_TABLES:
-        shutil.copy2(staging / f"{name}.csv", PORTFOLIO_DATA_DIR / f"{name}.csv")
+    for name, frame in public_tables.items():
+        frame.to_csv(PORTFOLIO_DATA_DIR / f"{name}.csv", index=False, encoding="utf-8")
 
     SITE_DIR.mkdir(parents=True, exist_ok=True)
     (SITE_DIR / "index.html").write_text(desktop_html, encoding="utf-8")

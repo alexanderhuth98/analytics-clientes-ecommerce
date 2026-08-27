@@ -43,10 +43,10 @@ conserve el manifiesto/hash del snapshot que necesita reproducir.
 |---|---|
 | `data/warehouse/ecommerce.duckdb` | Warehouse local. |
 | `manifests/raw_sources.jsonl` | Procedencia del ZIP. |
-| `outputs/` | CSV, Parquet, Excel, HTML, resumen y validacion locales. |
+| `outputs/` | Marts completos en CSV/Parquet/Excel, HTML, resumen y validacion locales. |
 | `reports/<corte>/` | Informes versionables del build. |
-| `portfolio_data/` | Ocho CSV agregados. |
-| `site/` | Dashboard HTML desktop y movil. |
+| `portfolio_data/` | Ocho CSV publicos; solo filas `PUBLISHABLE` donde hay control de cobertura. |
+| `site/` | Dashboard HTML desktop y movil renderizado desde la vista publica. |
 
 ## Validacion manual
 
@@ -57,7 +57,7 @@ uv run pytest --cov=ecommerce_clientes --cov-report=term-missing --cov-report=xm
 uv run ecommerce-clientes validate
 ```
 
-El proyecto declara `fail_under = 80` para cobertura y mantiene 49 pruebas versionadas.
+El proyecto declara `fail_under = 80` para cobertura y mantiene 50 pruebas versionadas.
 La CI ejecuta la misma suite y debe permanecer roja si lint, tests o cobertura fallan.
 
 La validacion analitica si tiene evidencia publicada: 15 controles, 0 fallas `HIGH` y 4
@@ -79,6 +79,10 @@ ausencia de vulnerabilidades o credenciales. Un hallazgo requiere revision human
 `pages.yml` publica exclusivamente `site/` en pushes a `main` o por ejecucion manual. No
 descarga Olist, no reconstruye el warehouse y no necesita secretos Kaggle. La URL solo
 debe documentarse despues del primer despliegue exitoso; actualmente no se declara una.
+
+El repositorio publico canonico es
+`https://github.com/alexanderhuth98/analytics-clientes-ecommerce`. El remoto GitLab de la
+copia de desarrollo es privado y no es un endpoint publico del paquete.
 
 ## Recuperacion
 

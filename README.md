@@ -42,7 +42,8 @@ captura inferior documenta el build de referencia.
   `customer_unique_id`.
 - Agrega items, pagos y reviews por pedido antes de unirlos para evitar fanout.
 - Segmenta clientes por valor ABC, unidades y cantidad de categorias conocidas.
-- Suprime comparaciones con menos de 30 clientes o pedidos, segun el mart.
+- Suprime comparaciones con menos de 30 clientes o pedidos, segun el mart, y excluye la
+  fila completa de los artefactos publicos.
 - Ejecuta 15 controles de integridad y conserva advertencias no bloqueantes.
 - Exporta ocho CSV agregados, Parquet, Excel, informes y dashboard HTML.
 - Alimenta Power BI solo con datos agregados; no publica filas de clientes o pedidos.
@@ -116,6 +117,10 @@ Kaggle/Olist -> ZIP + SHA-256 -> CSV raw -> ingest transaccional -> DuckDB
 - La ingesta publica una nueva base solo despues de validar los nueve contratos.
 - El build de tablas y controles ocurre dentro de una transaccion DuckDB.
 - Los CSV publicos son agregados; raw, warehouse, Parquet y binarios se ignoran en Git.
+- `outputs/` conserva localmente los marts completos para control. `portfolio_data/` y
+  `site/` reciben una vista publica separada que admite exclusivamente filas
+  `coverage_status = PUBLISHABLE`; cualquier otro estado se excluye con identificadores
+  y metricas, sin reemplazar valores por cero.
 
 Consulte [arquitectura](docs/architecture.md) para granos y flujo completo.
 
@@ -168,12 +173,15 @@ Consulte [acceso a datos](docs/data_access.md) antes de redistribuir la fuente.
 
 ## CI y publicacion
 
+- El repositorio publico canonico es
+  [GitHub](https://github.com/alexanderhuth98/analytics-clientes-ecommerce). GitLab se usa
+  solo como origen privado de desarrollo y no se presenta como URL publica del paquete.
 - `ci.yml` sincroniza con `uv`, ejecuta `ruff`, `pytest` con cobertura, audita
   dependencias y busca secretos.
 - `pages.yml` publica el contenido ya generado de `site/`; no reconstruye datos ni
   descarga la fuente.
 - Dependabot revisa dependencias de GitHub Actions y del ecosistema Python.
-- La suite contiene `49` pruebas aisladas de internet y del warehouse local.
+- La suite contiene `50` pruebas aisladas de internet y del warehouse local.
 - La verificacion final alcanzo `93,5%` de cobertura total; CI bloquea valores inferiores
   al `80%`.
 
@@ -185,14 +193,15 @@ Consulte [acceso a datos](docs/data_access.md) antes de redistribuir la fuente.
 - La baja recurrencia observada no permite presentar ABC como segmentacion de fidelidad.
 - Las reviews faltantes pueden introducir sesgo de seleccion.
 - La relacion entre demora y review es descriptiva, no causal.
-- Los grupos bajo el threshold de 30 se suprimen; no se reemplazan por cero.
+- Los grupos bajo el threshold de 30 se suprimen; sus filas completas no se publican y
+  sus valores no se reemplazan por cero.
 
 ## Fuente y licencias
 
 - Fuente: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), publicado en Kaggle por Olist.
 - Evidencia de procedencia: `manifests/raw_sources.jsonl` conserva URL de descarga,
   SHA-256 y lista de archivos del snapshot usado.
-- La [metadata de Kaggle](https://www.kaggle.com/api/v1/datasets/view/olistbr/brazilian-ecommerce), consultada el `2026-08-20`, expone `CC BY-NC-SA 4.0` en
+- La [metadata de Kaggle](https://www.kaggle.com/api/v1/datasets/view/olistbr/brazilian-ecommerce), consultada nuevamente el `2026-08-27`, expone `CC BY-NC-SA 4.0` en
   `licenseName`. Esa declaracion corresponde a la plataforma/fuente y debe volver a
   verificarse antes de redistribuir datos, porque la metadata externa puede cambiar.
 - Licencia del codigo y la documentacion de este proyecto: [MIT](LICENSE). MIT no

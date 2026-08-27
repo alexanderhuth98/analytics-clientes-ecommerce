@@ -7,8 +7,8 @@
 - Sufijo `_brl`: importe en reales brasilenos.
 - `as_of_date`: fecha maxima incluida por el build.
 - `build_id`: UUID que identifica una ejecucion analitica.
-- `coverage_status`: `PUBLISHABLE`, `SUPPRESSED` o, en la tabla detallada interna,
-  `DIRECTIONAL`.
+- `coverage_status`: el modelo interno puede contener `PUBLISHABLE`, `SUPPRESSED` o
+  `DIRECTIONAL`; los CSV publicos solo contienen `PUBLISHABLE`.
 
 ## Fuentes
 
@@ -41,6 +41,11 @@
 | `mart_customer_segmentation_asof` | `customer_unique_id` | Features y tres segmentos al corte. |
 
 ## CSV publicos
+
+Los archivos de `portfolio_data/` conservan el esquema de cada mart, pero excluyen por
+fila completa cualquier registro cuyo `coverage_status` no sea exactamente `PUBLISHABLE`.
+Los registros excluidos, sus identificadores y sus metricas solo permanecen en los
+artefactos locales ignorados de `outputs/`.
 
 ### `executive_monthly.csv`
 
