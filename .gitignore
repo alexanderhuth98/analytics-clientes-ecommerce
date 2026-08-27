@@ -1,0 +1,60 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Raw, interim and analytical storage
+/data/
+*.duckdb
+*.duckdb.*
+*.parquet
+*.zip
+*.part
+*.tmp
+*.wal
+
+# Generated local deliverables
+/outputs/*
+!/outputs/README.md
+*.xlsx
+*.pbix
+*.pbit
+
+# Curated public data allowlist
+/portfolio_data/*
+!/portfolio_data/README.md
+!/portfolio_data/executive_monthly.csv
+!/portfolio_data/customer_segment_summary.csv
+!/portfolio_data/customer_cross_segment.csv
+!/portfolio_data/customer_category_affinity.csv
+!/portfolio_data/category_performance.csv
+!/portfolio_data/seller_performance.csv
+!/portfolio_data/delivery_experience.csv
+!/portfolio_data/quality_checks.csv
+
+# Power BI local state
+**/.pbi/
+
+# Editors and operating system
+*.log
+*.bak
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

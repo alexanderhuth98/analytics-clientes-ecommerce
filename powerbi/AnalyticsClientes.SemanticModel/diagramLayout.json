@@ -1,0 +1,29 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {"x": 0, "y": 0},
+      "nodes": [
+        {"location": {"x": 550, "y": 350}, "nodeIndex": "Calendario", "size": {"height": 220, "width": 234}, "zIndex": 0},
+        {"location": {"x": 900, "y": 350}, "nodeIndex": "Medidas", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 50, "y": 50}, "nodeIndex": "executive_monthly", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 50, "y": 400}, "nodeIndex": "delivery_experience", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 50, "y": 750}, "nodeIndex": "customer_segment_summary", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 350, "y": 750}, "nodeIndex": "customer_cross_segment", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 650, "y": 750}, "nodeIndex": "customer_category_affinity", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 950, "y": 750}, "nodeIndex": "category_performance", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 1250, "y": 750}, "nodeIndex": "seller_performance", "size": {"height": 300, "width": 234}, "zIndex": 0},
+        {"location": {"x": 1250, "y": 350}, "nodeIndex": "quality_checks", "size": {"height": 300, "width": 234}, "zIndex": 0}
+      ],
+      "name": "Modelo analitico",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Modelo analitico",
+  "defaultDiagram": "Modelo analitico"
+}

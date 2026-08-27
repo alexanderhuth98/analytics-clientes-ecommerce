@@ -1,0 +1,16 @@
+build_id,as_of_date,check_id,severity,status,observed_value,threshold,details
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,orders_pk_unique,HIGH,PASS,0.0,0.0,order_id debe ser unico en fct_order
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,customers_bridge_pk_unique,HIGH,PASS,0.0,0.0,customer_id debe ser unico en el puente pedido-cliente
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,order_items_pk_unique,HIGH,PASS,0.0,0.0,order_id + order_item_id debe ser unico
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,orders_without_customer,HIGH,PASS,0.0,0.0,Todo pedido debe resolver customer_unique_id
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,items_without_order,HIGH,PASS,0.0,0.0,Todo item debe resolver un pedido
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,items_without_product,HIGH,PASS,0.0,0.0,Todo item debe resolver un producto
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,items_without_seller,HIGH,PASS,0.0,0.0,Todo item debe resolver un vendedor
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,negative_item_values,HIGH,PASS,0.0,0.0,Los importes de item no pueden ser negativos
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,invalid_order_chronology_source,MEDIUM,FAIL,23.0,0.0,Filas excluidas de metricas operativas; el dato fuente no se corrige
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,customer_segment_unique,HIGH,PASS,0.0,0.0,Cada cliente elegible debe tener una sola segmentacion
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,customer_segment_complete,HIGH,PASS,0.0,0.0,Las tres dimensiones de segmentacion son obligatorias
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,customer_gmv_reconciliation,HIGH,PASS,0.0,0.01,El GMV segmentado debe reconciliar con items elegibles
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,unknown_product_categories,MEDIUM,FAIL,623.0,0.0,Categorias sin traduccion o clasificacion
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,orders_payment_difference_gt_1,MEDIUM,FAIL,256.0,0.0,"Diferencias pueden incluir vouchers y ajustes; se informan, no se imputan"
+4877d616-bad1-48d6-bffb-17005001d164,2018-10-17,orders_without_review,MEDIUM,FAIL,646.0,0.0,Pedidos entregados sin review

@@ -1,0 +1,218 @@
+{
+  "name": "Analytics Clientes Ecommerce",
+  "id": "AnalyticsClientes",
+  "compatibilityLevel": 1606,
+  "model": {
+    "name": "Analytics Clientes Ecommerce",
+    "culture": "es-ES",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "tables": [
+      {
+        "name": "executive_monthly",
+        "description": "Serie mensual agregada de pedidos, clientes, GMV y experiencia.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "month_start", "dataType": "dateTime", "sourceColumn": "month_start", "formatString": "MMM yyyy", "summarizeBy": "none"},
+          {"name": "orders", "dataType": "int64", "sourceColumn": "orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "customers", "dataType": "int64", "sourceColumn": "customers", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "delivered_orders", "dataType": "int64", "sourceColumn": "delivered_orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "failed_orders", "dataType": "int64", "sourceColumn": "failed_orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "freight_value_brl", "dataType": "double", "sourceColumn": "freight_value_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "units", "dataType": "double", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "avg_order_value_brl", "dataType": "double", "sourceColumn": "avg_order_value_brl", "formatString": "R$ #,##0.00", "summarizeBy": "none"},
+          {"name": "avg_review_score", "dataType": "double", "sourceColumn": "avg_review_score", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "late_delivery_rate", "dataType": "double", "sourceColumn": "late_delivery_rate", "formatString": "0.0%", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "executive_monthly", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"executive_monthly.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"month_start\", type date}, {\"orders\", Int64.Type}, {\"customers\", Int64.Type}, {\"delivered_orders\", Int64.Type}, {\"failed_orders\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"freight_value_brl\", type number}, {\"units\", type number}, {\"avg_order_value_brl\", type number}, {\"avg_review_score\", type number}, {\"late_delivery_rate\", type number}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "customer_segment_summary",
+        "description": "Resumen anonimizado por dimension y etiqueta de segmentacion.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "segmentation_version", "dataType": "string", "isHidden": true, "sourceColumn": "segmentation_version", "summarizeBy": "none"},
+          {"name": "segment_dimension", "dataType": "string", "sourceColumn": "segment_dimension", "summarizeBy": "none"},
+          {"name": "segment_label", "dataType": "string", "sourceColumn": "segment_label", "summarizeBy": "none"},
+          {"name": "customers", "dataType": "int64", "sourceColumn": "customers", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "units", "dataType": "double", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "avg_delivered_orders", "dataType": "double", "sourceColumn": "avg_delivered_orders", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "avg_distinct_categories", "dataType": "double", "sourceColumn": "avg_distinct_categories", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "gmv_share", "dataType": "double", "sourceColumn": "gmv_share", "formatString": "0.0%", "summarizeBy": "none"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "customer_segment_summary", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"customer_segment_summary.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"segmentation_version\", type text}, {\"segment_dimension\", type text}, {\"segment_label\", type text}, {\"customers\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"units\", type number}, {\"avg_delivered_orders\", type number}, {\"avg_distinct_categories\", type number}, {\"gmv_share\", type number}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "customer_cross_segment",
+        "description": "Cruces agregados y anonimizados de las tres dimensiones de segmentacion.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "segmentation_version", "dataType": "string", "isHidden": true, "sourceColumn": "segmentation_version", "summarizeBy": "none"},
+          {"name": "value_segment", "dataType": "string", "sourceColumn": "value_segment", "summarizeBy": "none"},
+          {"name": "unit_segment", "dataType": "string", "sourceColumn": "unit_segment", "summarizeBy": "none"},
+          {"name": "category_segment", "dataType": "string", "sourceColumn": "category_segment", "summarizeBy": "none"},
+          {"name": "customers", "dataType": "int64", "sourceColumn": "customers", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "units", "dataType": "double", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "avg_distinct_categories", "dataType": "double", "sourceColumn": "avg_distinct_categories", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "customer_cross_segment", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"customer_cross_segment.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"segmentation_version\", type text}, {\"value_segment\", type text}, {\"unit_segment\", type text}, {\"category_segment\", type text}, {\"customers\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"units\", type number}, {\"avg_distinct_categories\", type number}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "customer_category_affinity",
+        "description": "Afinidad agregada entre segmento de valor y categoria; sin filas de cliente.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "value_segment", "dataType": "string", "sourceColumn": "value_segment", "summarizeBy": "none"},
+          {"name": "category_name", "dataType": "string", "sourceColumn": "category_name", "summarizeBy": "none"},
+          {"name": "customers", "dataType": "int64", "sourceColumn": "customers", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "units", "dataType": "int64", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "customer_category_affinity", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"customer_category_affinity.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"value_segment\", type text}, {\"category_name\", type text}, {\"customers\", Int64.Type}, {\"units\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "category_performance",
+        "description": "Desempeno agregado y publicabilidad por categoria.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "category_name", "dataType": "string", "sourceColumn": "category_name", "summarizeBy": "none"},
+          {"name": "units", "dataType": "int64", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "orders", "dataType": "int64", "sourceColumn": "orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "customers", "dataType": "int64", "sourceColumn": "customers", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "avg_item_value_brl", "dataType": "double", "sourceColumn": "avg_item_value_brl", "formatString": "R$ #,##0.00", "summarizeBy": "none"},
+          {"name": "avg_review_score", "dataType": "double", "sourceColumn": "avg_review_score", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "category_performance", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"category_performance.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"category_name\", type text}, {\"units\", Int64.Type}, {\"orders\", Int64.Type}, {\"customers\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"avg_item_value_brl\", type number}, {\"avg_review_score\", type number}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "delivery_experience",
+        "description": "Experiencia mensual agregada por estado de entrega.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "month_start", "dataType": "dateTime", "sourceColumn": "month_start", "formatString": "MMM yyyy", "summarizeBy": "none"},
+          {"name": "delivery_status", "dataType": "string", "sourceColumn": "delivery_status", "summarizeBy": "none"},
+          {"name": "orders", "dataType": "int64", "sourceColumn": "orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "avg_review_score", "dataType": "double", "sourceColumn": "avg_review_score", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "avg_delivery_delay_days", "dataType": "double", "sourceColumn": "avg_delivery_delay_days", "formatString": "0.0", "summarizeBy": "none"},
+          {"name": "reviewed_orders", "dataType": "int64", "sourceColumn": "reviewed_orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "delivery_experience", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"delivery_experience.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"month_start\", type date}, {\"delivery_status\", type text}, {\"orders\", Int64.Type}, {\"avg_review_score\", type number}, {\"avg_delivery_delay_days\", type number}, {\"reviewed_orders\", Int64.Type}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "seller_performance",
+        "description": "Desempeno agregado por vendedor anonimizado; no contiene clientes.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "seller_id", "dataType": "string", "isHidden": true, "sourceColumn": "seller_id", "summarizeBy": "none"},
+          {"name": "seller_state", "dataType": "string", "sourceColumn": "seller_state", "summarizeBy": "none"},
+          {"name": "orders", "dataType": "int64", "sourceColumn": "orders", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "units", "dataType": "int64", "sourceColumn": "units", "formatString": "#,0", "summarizeBy": "sum"},
+          {"name": "merchandise_gmv_brl", "dataType": "double", "sourceColumn": "merchandise_gmv_brl", "formatString": "R$ #,##0.00", "summarizeBy": "sum"},
+          {"name": "avg_review_score", "dataType": "double", "sourceColumn": "avg_review_score", "formatString": "0.00", "summarizeBy": "none"},
+          {"name": "late_delivery_rate", "dataType": "double", "sourceColumn": "late_delivery_rate", "formatString": "0.0%", "summarizeBy": "none"},
+          {"name": "coverage_status", "dataType": "string", "sourceColumn": "coverage_status", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "seller_performance", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"seller_performance.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"seller_id\", type text}, {\"seller_state\", type text}, {\"orders\", Int64.Type}, {\"units\", Int64.Type}, {\"merchandise_gmv_brl\", type number}, {\"avg_review_score\", type number}, {\"late_delivery_rate\", type number}, {\"coverage_status\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "quality_checks",
+        "description": "Controles y advertencias del build publicado.",
+        "columns": [
+          {"name": "build_id", "dataType": "string", "isHidden": true, "sourceColumn": "build_id", "summarizeBy": "none"},
+          {"name": "as_of_date", "dataType": "dateTime", "isHidden": true, "sourceColumn": "as_of_date", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "check_id", "dataType": "string", "sourceColumn": "check_id", "summarizeBy": "none"},
+          {"name": "severity", "dataType": "string", "sourceColumn": "severity", "summarizeBy": "none"},
+          {"name": "status", "dataType": "string", "sourceColumn": "status", "summarizeBy": "none"},
+          {"name": "observed_value", "dataType": "double", "sourceColumn": "observed_value", "formatString": "#,0.00", "summarizeBy": "none"},
+          {"name": "threshold", "dataType": "double", "sourceColumn": "threshold", "formatString": "#,0.00", "summarizeBy": "none"},
+          {"name": "details", "dataType": "string", "sourceColumn": "details", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "quality_checks", "mode": "import", "source": {"type": "m", "expression": "let\n    Source = Csv.Document(File.Contents(DataFolder & \"quality_checks.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),\n    Typed = Table.TransformColumnTypes(Headers, {{\"build_id\", type text}, {\"as_of_date\", type date}, {\"check_id\", type text}, {\"severity\", type text}, {\"status\", type text}, {\"observed_value\", type number}, {\"threshold\", type number}, {\"details\", type text}}, \"en-US\")\nin\n    Typed"}}]
+      },
+      {
+        "name": "Calendario",
+        "description": "Dimension calendario dinamica desde el primer mes observado hasta la fecha de corte.",
+        "dataCategory": "Time",
+        "columns": [
+          {"name": "Fecha", "dataType": "dateTime", "sourceColumn": "Fecha", "formatString": "yyyy-MM-dd", "summarizeBy": "none"},
+          {"name": "Anio", "dataType": "int64", "sourceColumn": "Anio", "formatString": "0", "summarizeBy": "none"},
+          {"name": "Mes numero", "dataType": "int64", "sourceColumn": "Mes numero", "formatString": "0", "summarizeBy": "none"},
+          {"name": "Mes indice", "dataType": "int64", "isHidden": true, "sourceColumn": "Mes indice", "formatString": "0", "summarizeBy": "none"},
+          {"name": "Mes", "dataType": "string", "sourceColumn": "Mes", "sortByColumn": "Mes indice", "summarizeBy": "none"}
+        ],
+        "partitions": [{"name": "Calendario", "mode": "import", "source": {"type": "m", "expression": "let\n    Raw = Csv.Document(File.Contents(DataFolder & \"executive_monthly.csv\"), [Delimiter=\",\", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),\n    Headers = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),\n    MonthDates = List.RemoveNulls(List.Transform(Headers[month_start], each try Date.From(_) otherwise null)),\n    CutDates = List.RemoveNulls(List.Transform(Headers[as_of_date], each try Date.From(_) otherwise null)),\n    StartDate = List.Min(MonthDates),\n    EndDate = List.Max(List.Combine({MonthDates, CutDates})),\n    Dates = List.Dates(StartDate, Duration.Days(EndDate - StartDate) + 1, #duration(1, 0, 0, 0)),\n    Source = Table.FromList(Dates, Splitter.SplitByNothing(), {\"Fecha\"}),\n    Typed = Table.TransformColumnTypes(Source, {{\"Fecha\", type date}}),\n    AddYear = Table.AddColumn(Typed, \"Anio\", each Date.Year([Fecha]), Int64.Type),\n    AddMonthNumber = Table.AddColumn(AddYear, \"Mes numero\", each Date.Month([Fecha]), Int64.Type),\n    AddMonthIndex = Table.AddColumn(AddMonthNumber, \"Mes indice\", each Date.Year([Fecha]) * 100 + Date.Month([Fecha]), Int64.Type),\n    AddMonth = Table.AddColumn(AddMonthIndex, \"Mes\", each Date.ToText([Fecha], \"MMM yyyy\", \"es-ES\"), type text)\nin\n    AddMonth"}}]
+      },
+      {
+        "name": "Medidas",
+        "description": "Medidas ejecutivas, de mix, operacion y calidad.",
+        "columns": [{"name": "Valor", "dataType": "int64", "isHidden": true, "sourceColumn": "Valor"}],
+        "partitions": [{"name": "Medidas", "mode": "import", "source": {"type": "m", "expression": "#table(type table [Valor = Int64.Type], {{1}})"}}],
+        "measures": [
+          {"name": "Pedidos", "description": "Pedidos observados en el contexto mensual seleccionado.", "expression": "SUM('executive_monthly'[orders])", "formatString": "#,0"},
+          {"name": "Pedidos entregados", "description": "Pedidos entregados en el contexto mensual seleccionado.", "expression": "SUM('executive_monthly'[delivered_orders])", "formatString": "#,0"},
+          {"name": "GMV", "description": "GMV de mercaderia entregada; excluye flete y no representa beneficio.", "expression": "SUM('executive_monthly'[merchandise_gmv_brl])", "formatString": "R$ #,##0"},
+          {"name": "Ticket promedio", "description": "GMV dividido por pedidos entregados.", "expression": "DIVIDE([GMV], [Pedidos entregados])", "formatString": "R$ #,##0.00"},
+          {"name": "Tasa de pedidos fallidos", "description": "Pedidos fallidos sobre pedidos observados.", "expression": "DIVIDE(SUM('executive_monthly'[failed_orders]), [Pedidos])", "formatString": "0.0%"},
+          {"name": "Tasa de entrega tardia", "description": "Promedio ponderado de la tasa mensual por pedidos entregados.", "expression": "DIVIDE(SUMX('executive_monthly', 'executive_monthly'[delivered_orders] * 'executive_monthly'[late_delivery_rate]), SUM('executive_monthly'[delivered_orders]))", "formatString": "0.0%"},
+          {"name": "Clientes elegibles", "description": "Clientes de la dimension VALUE publicable; evita sumar tres dimensiones de segmentacion.", "expression": "CALCULATE(SUM('customer_segment_summary'[customers]), 'customer_segment_summary'[segment_dimension] = \"VALUE\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "Clientes alto valor", "description": "Clientes publicables clasificados A_HIGH_VALUE.", "expression": "CALCULATE(SUM('customer_segment_summary'[customers]), 'customer_segment_summary'[segment_dimension] = \"VALUE\", 'customer_segment_summary'[segment_label] = \"A_HIGH_VALUE\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "Share GMV alto valor", "description": "Proporcion del GMV de la dimension VALUE correspondiente a A_HIGH_VALUE.", "expression": "DIVIDE(CALCULATE(SUM('customer_segment_summary'[merchandise_gmv_brl]), 'customer_segment_summary'[segment_dimension] = \"VALUE\", 'customer_segment_summary'[segment_label] = \"A_HIGH_VALUE\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\"), CALCULATE(SUM('customer_segment_summary'[merchandise_gmv_brl]), 'customer_segment_summary'[segment_dimension] = \"VALUE\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\"))", "formatString": "0.0%"},
+          {"name": "Clientes una categoria", "description": "Clientes publicables clasificados como SPECIALIST en amplitud de categorias.", "expression": "CALCULATE(SUM('customer_segment_summary'[customers]), 'customer_segment_summary'[segment_dimension] = \"CATEGORIES\", 'customer_segment_summary'[segment_label] = \"SPECIALIST\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "GMV por segmento", "description": "GMV publicable de la dimension VALUE; responde a segment_label.", "expression": "CALCULATE(SUM('customer_segment_summary'[merchandise_gmv_brl]), 'customer_segment_summary'[segment_dimension] = \"VALUE\", 'customer_segment_summary'[coverage_status] = \"PUBLISHABLE\")", "formatString": "R$ #,##0"},
+          {"name": "Clientes cruce", "description": "Clientes en combinaciones publicables del cruce de segmentos.", "expression": "CALCULATE(SUM('customer_cross_segment'[customers]), 'customer_cross_segment'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "GMV afinidad", "description": "GMV publicable por afinidad de segmento de valor y categoria.", "expression": "CALCULATE(SUM('customer_category_affinity'[merchandise_gmv_brl]), 'customer_category_affinity'[coverage_status] = \"PUBLISHABLE\")", "formatString": "R$ #,##0"},
+          {"name": "GMV categorias", "description": "GMV de categorias con cobertura publicable.", "expression": "CALCULATE(SUM('category_performance'[merchandise_gmv_brl]), 'category_performance'[coverage_status] = \"PUBLISHABLE\")", "formatString": "R$ #,##0"},
+          {"name": "Review categoria", "description": "Review media informada por categoria publicable.", "expression": "CALCULATE(AVERAGE('category_performance'[avg_review_score]), 'category_performance'[coverage_status] = \"PUBLISHABLE\")", "formatString": "0.00"},
+          {"name": "Ordenes entrega", "description": "Pedidos de experiencia de entrega con cobertura publicable.", "expression": "CALCULATE(SUM('delivery_experience'[orders]), 'delivery_experience'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "Ordenes tardias", "description": "Pedidos tardios con cobertura publicable.", "expression": "CALCULATE(SUM('delivery_experience'[orders]), 'delivery_experience'[delivery_status] = \"LATE\", 'delivery_experience'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "Tasa tardia publicable", "description": "Pedidos tardios sobre pedidos publicables clasificados por estado de entrega.", "expression": "DIVIDE([Ordenes tardias], [Ordenes entrega])", "formatString": "0.0%"},
+          {"name": "Review ponderada", "description": "Review media ponderada por pedidos con review y cobertura publicable.", "expression": "DIVIDE(CALCULATE(SUMX('delivery_experience', 'delivery_experience'[reviewed_orders] * 'delivery_experience'[avg_review_score]), 'delivery_experience'[coverage_status] = \"PUBLISHABLE\"), CALCULATE(SUM('delivery_experience'[reviewed_orders]), 'delivery_experience'[coverage_status] = \"PUBLISHABLE\"))", "formatString": "0.00"},
+          {"name": "Review a tiempo", "description": "Review ponderada de entregas a tiempo publicables.", "expression": "CALCULATE([Review ponderada], 'delivery_experience'[delivery_status] = \"ON_TIME\")", "formatString": "0.00"},
+          {"name": "Review tardia", "description": "Review ponderada de entregas tardias publicables.", "expression": "CALCULATE([Review ponderada], 'delivery_experience'[delivery_status] = \"LATE\")", "formatString": "0.00"},
+          {"name": "Vendedores publicables", "description": "Vendedores anonimizados con cobertura suficiente para publicacion.", "expression": "CALCULATE(DISTINCTCOUNT('seller_performance'[seller_id]), 'seller_performance'[coverage_status] = \"PUBLISHABLE\")", "formatString": "#,0"},
+          {"name": "GMV vendedores", "description": "GMV agregado de vendedores con cobertura publicable.", "expression": "CALCULATE(SUM('seller_performance'[merchandise_gmv_brl]), 'seller_performance'[coverage_status] = \"PUBLISHABLE\")", "formatString": "R$ #,##0"},
+          {"name": "Tasa tardia vendedores", "description": "Tasa de entrega tardia ponderada por pedidos en vendedores publicables.", "expression": "DIVIDE(CALCULATE(SUMX('seller_performance', 'seller_performance'[orders] * 'seller_performance'[late_delivery_rate]), 'seller_performance'[coverage_status] = \"PUBLISHABLE\"), CALCULATE(SUM('seller_performance'[orders]), 'seller_performance'[coverage_status] = \"PUBLISHABLE\"))", "formatString": "0.0%"},
+          {"name": "Controles", "description": "Cantidad de controles de calidad en el build.", "expression": "COUNTROWS('quality_checks')", "formatString": "#,0"},
+          {"name": "Fallas altas", "description": "Controles HIGH con estado FAIL.", "expression": "CALCULATE(COUNTROWS('quality_checks'), 'quality_checks'[severity] = \"HIGH\", 'quality_checks'[status] = \"FAIL\")", "formatString": "#,0"},
+          {"name": "Advertencias medias", "description": "Controles MEDIUM con estado FAIL.", "expression": "CALCULATE(COUNTROWS('quality_checks'), 'quality_checks'[severity] = \"MEDIUM\", 'quality_checks'[status] = \"FAIL\")", "formatString": "#,0"},
+          {"name": "Tasa controles aprobados", "description": "Controles PASS sobre el total de controles.", "expression": "DIVIDE(CALCULATE(COUNTROWS('quality_checks'), 'quality_checks'[status] = \"PASS\"), [Controles])", "formatString": "0.0%"},
+          {"name": "Filas suprimidas", "description": "Filas agregadas marcadas SUPPRESSED en marts con control de cobertura.", "expression": "CALCULATE(COUNTROWS('customer_segment_summary'), 'customer_segment_summary'[coverage_status] = \"SUPPRESSED\") + CALCULATE(COUNTROWS('customer_cross_segment'), 'customer_cross_segment'[coverage_status] = \"SUPPRESSED\") + CALCULATE(COUNTROWS('customer_category_affinity'), 'customer_category_affinity'[coverage_status] = \"SUPPRESSED\") + CALCULATE(COUNTROWS('category_performance'), 'category_performance'[coverage_status] = \"SUPPRESSED\") + CALCULATE(COUNTROWS('delivery_experience'), 'delivery_experience'[coverage_status] = \"SUPPRESSED\") + CALCULATE(COUNTROWS('seller_performance'), 'seller_performance'[coverage_status] = \"SUPPRESSED\")", "formatString": "#,0"},
+          {"name": "Valor observado fallas", "description": "Suma de observed_value en controles FAIL; se usa solo como referencia de calidad.", "expression": "CALCULATE(SUM('quality_checks'[observed_value]), 'quality_checks'[status] = \"FAIL\")", "formatString": "#,0.00"}
+        ]
+      }
+    ],
+    "relationships": [
+      {"name": "Calendario_executive_monthly", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "executive_monthly", "fromColumn": "month_start"},
+      {"name": "Calendario_delivery_experience", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "delivery_experience", "fromColumn": "month_start"},
+      {"name": "Calendario_customer_segment_summary", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "customer_segment_summary", "fromColumn": "as_of_date"},
+      {"name": "Calendario_customer_cross_segment", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "customer_cross_segment", "fromColumn": "as_of_date"},
+      {"name": "Calendario_customer_category_affinity", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "customer_category_affinity", "fromColumn": "as_of_date"},
+      {"name": "Calendario_category_performance", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "category_performance", "fromColumn": "as_of_date"},
+      {"name": "Calendario_seller_performance", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "seller_performance", "fromColumn": "as_of_date"},
+      {"name": "Calendario_quality_checks", "toTable": "Calendario", "toColumn": "Fecha", "fromTable": "quality_checks", "fromColumn": "as_of_date"}
+    ],
+    "expressions": [
+      {
+        "name": "DataFolder",
+        "description": "Carpeta relativa/configurable que contiene exclusivamente los CSV agregados de portfolio_data.",
+        "kind": "m",
+        "expression": "\"..\\portfolio_data\\\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      }
+    ]
+  }
+}
