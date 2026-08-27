@@ -2,8 +2,16 @@
 
 ## Estado
 
-No se documenta una release ni una URL publica existente. Este archivo define el proceso
-para una futura publicacion sin afirmar que ya ocurrio.
+La release `v1.0.0` publica activos binarios fuera del historial Git, siguiendo el mismo
+criterio que el proyecto de pricing.
+
+## Activos de la version `v1.0.0`
+
+- `powerbi/AnalyticsClientes.pbix`
+- `outputs/analytics_clientes_ecommerce.xlsx`
+- `outputs/dashboard_clientes_ecommerce.html`
+- `outputs/dashboard_mobile.html`
+- `outputs/release-v1.0.0/SHA256SUMS.txt`
 
 ## Contenido versionado
 
@@ -13,10 +21,10 @@ para una futura publicacion sin afirmar que ya ocurrio.
 - Informes del corte.
 - Ocho CSV agregados de `portfolio_data/`.
 - Dashboard de `site/`.
-- Proyecto Power BI textual, sin PBIX ni cache.
+- Proyecto Power BI textual; el PBIX queda como activo de GitHub Release.
 
 Raw, DuckDB, Parquet, ZIP, Excel, HTML autocontenido local, PBIX y secretos no deben
-entrar al historial.
+entrar al historial. Los binarios publicables se adjuntan al Release con hashes.
 
 ## Checklist previo
 
@@ -35,16 +43,20 @@ entrar al historial.
 
 ## Empaquetado local
 
-Los artefactos binarios potenciales se generan en `outputs/` y permanecen ignorados. Para
-crear hashes en PowerShell:
+Los artefactos binarios se generan localmente y permanecen ignorados. Para preparar la
+carpeta de release y hashes:
 
 ```powershell
-Get-FileHash .\outputs\analytics_clientes_ecommerce.xlsx -Algorithm SHA256
-Get-FileHash .\outputs\dashboard_clientes_ecommerce.html -Algorithm SHA256
-Get-FileHash .\outputs\dashboard_mobile.html -Algorithm SHA256
+.\scripts\package_release.ps1
 ```
 
-Registre los hashes junto con la release. No se declara que este paso este automatizado.
+Si la politica local exige scripts firmados:
+
+```cmd
+type scripts\package_release.ps1 | powershell.exe -NoProfile -Command -
+```
+
+Verifique `outputs/release-v1.0.0/SHA256SUMS.txt` y adjunte esos activos al Release.
 
 ## Versionado
 

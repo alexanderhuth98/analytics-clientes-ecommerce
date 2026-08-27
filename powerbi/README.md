@@ -13,10 +13,12 @@
 - `AnalyticsClientes.pbip`: entrada editable del proyecto.
 - `AnalyticsClientes.Report/`: definición PBIR de cuatro páginas y 26 visuales nativos.
 - `AnalyticsClientes.SemanticModel/model.bim`: modelo TMSL editable con 10 tablas, 8 relaciones y 30 medidas.
+- `AnalyticsClientes.pbix`: copia binaria local para publicar como activo de GitHub Release.
 - `theme.json`: tema fuente `ClientesEditorial`, equivalente al lenguaje editorial del proyecto de pricing.
 - `validate_pbip.ps1`: validación reproducible de JSON, fuentes, referencias PBIR y modelo TOM.
 
-No se incluyen `.pbix`, cachés `.pbi/`, extractos ni otros binarios.
+No se versionan `.pbix`, cachés `.pbi/`, extractos ni otros binarios. El PBIX se genera
+localmente y se distribuye como activo de GitHub Release con hash SHA-256.
 
 ## Fuentes
 
@@ -114,7 +116,8 @@ La tabla `Medidas` incluye, entre otras:
 1. Abrir `powerbi\AnalyticsClientes.pbip` con Power BI Desktop.
 2. Confirmar el parámetro `DataFolder` en **Transformar datos > Administrar parámetros**.
 3. Seleccionar **Inicio > Actualizar**.
-4. Revisar las cuatro páginas y guardar el PBIP sin convertirlo a un binario.
+4. Revisar las cuatro páginas y guardar el PBIP sin rutas personales.
+5. Guardar una copia `AnalyticsClientes.pbix` para GitHub Release; no commitear el binario.
 
 ## Validación reproducible
 

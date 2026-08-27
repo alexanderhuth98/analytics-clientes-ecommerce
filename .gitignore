@@ -28,7 +28,7 @@ build/
 *.tmp
 *.wal
 
-# Generated local deliverables
+# Generated local deliverables; publish these as GitHub Release assets
 /outputs/*
 !/outputs/README.md
 *.xlsx

@@ -142,7 +142,7 @@ Consulte [arquitectura](docs/architecture.md) para granos y flujo completo.
 | [Releases](docs/releases.md) | Checklist de empaquetado y publicacion. |
 | [Datos agregados](portfolio_data/) | Ocho CSV anonimizados para revision y Power BI. |
 | [Dashboard web](site/index.html) | Resultado ejecutivo HTML listo para GitHub Pages. |
-| [Proyecto Power BI](powerbi/AnalyticsClientes.pbip) | PBIP editable con 10 tablas, 30 medidas, 4 paginas y 26 visuales. |
+| [Proyecto Power BI](powerbi/AnalyticsClientes.pbip) | PBIP editable; el PBIX se publica como activo de GitHub Release. |
 | [Informe ejecutivo](reports/2018-10-17/resumen_ejecutivo.md) | Sintesis del build de referencia. |
 | [Validacion](reports/2018-10-17/validation_report.md) | Resultado de los 15 controles. |
 
