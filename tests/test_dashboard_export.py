@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import duckdb
 import openpyxl
@@ -50,11 +51,19 @@ def _dashboard_tables() -> dict[str, pd.DataFrame]:
                 {
                     "category_name": "home",
                     "merchandise_gmv_brl": 1_500_000,
+                    "orders": 20,
+                    "coverage_status": "PUBLISHABLE",
+                },
+                {
+                    "category_name": "health_beauty",
+                    "merchandise_gmv_brl": 1_000_000,
+                    "orders": 15,
                     "coverage_status": "PUBLISHABLE",
                 },
                 {
                     "category_name": "secret-small-cell",
                     "merchandise_gmv_brl": 500_000,
+                    "orders": 1,
                     "coverage_status": "SUPPRESSED",
                 },
             ]
@@ -82,7 +91,10 @@ def _dashboard_tables() -> dict[str, pd.DataFrame]:
 
 def test_display_helpers_use_brazilian_formatting():
     assert dashboard._money(1_250_000) == "R$ 1,2 M"
+    assert dashboard._currency(1_250_000.5) == "R$ 1.250.000,50"
     assert dashboard._number(12345) == "12.345"
+    assert dashboard._decimal(4.25) == "4,25"
+    assert dashboard._date("2018-02-01") == "01/02/2018"
 
 
 def test_render_dashboard_filters_suppressed_data_and_supports_mobile():
@@ -95,15 +107,94 @@ def test_render_dashboard_filters_suppressed_data_and_supports_mobile():
     assert "Clientes segmentados</span><strong>10" in desktop
     assert "2018-02-01&lt;script&gt;" in desktop
     assert "secret-small-cell" not in desktop
+    assert "A \\u00b7 Alto valor" in desktop
+    assert "B \\u00b7 Valor medio" in desktop
+    assert "Hogar" in desktop
+    assert "Salud y belleza" in desktop
+    assert '"health_beauty"' not in desktop
+    assert "A tiempo" in desktop
+    assert "Con demora" in desktop
     assert desktop.count('class="plotly-graph-div"') == 4
+    assert desktop.count(">Restablecer vista</button>") == 4
+    assert "Plotly.relayout" in desktop
+    assert "'xaxis.autorange': true" in desktop
+    assert "'yaxis.autorange': true" in desktop
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in desktop
     assert "grid-template-columns:1fr" in mobile
+
+    for internal_code in (
+        '"A_HIGH_VALUE"',
+        '"B_MEDIUM_VALUE"',
+        '"C_LOW_VALUE"',
+        '"ON_TIME"',
+        '"LATE"',
+        "Review promedio",
+    ):
+        assert internal_code not in desktop
+
+
+def test_all_versioned_public_categories_have_natural_spanish_labels():
+    project_root = Path(__file__).resolve().parents[1]
+    categories = pd.read_csv(project_root / "portfolio_data/category_performance.csv")
+
+    source_labels = set(categories["category_name"])
+    assert source_labels <= dashboard.CATEGORY_LABELS.keys()
+    for source_label in source_labels:
+        presentation_label = dashboard.CATEGORY_LABELS[source_label]
+        assert "_" not in presentation_label
+        assert presentation_label != source_label
+
+
+def test_dashboard_uses_portfolio_identity_and_argentine_copy():
+    html = dashboard.render_dashboard(_dashboard_tables())
+
+    expected_tokens = {
+        "--bg:#0b1111",
+        "--bg-deep:#080d0d",
+        "--surface:#171d1e",
+        "--surface-raised:#1b2223",
+        "--surface-soft:#111819",
+        "--text:#edf1ef",
+        "--muted:#a5aeaa",
+        "--dim:#89938f",
+        "--mint:#9ef6e5",
+        "--mint-bright:#58e4d0",
+        "--amber:#f3ce62",
+        "--border:rgba(158,246,229,.11)",
+        "--border-strong:rgba(158,246,229,.25)",
+    }
+    for token in expected_tokens:
+        assert token in html
+    assert '<html lang="es-AR">' in html
+    assert "Space Grotesk" in html
+    assert "IBM Plex Mono" in html
+    assert "Clientes y desempeño e-commerce" in html
+    assert "Calificaci\\u00f3n promedio" in html
+    assert "controles de calidad" in html
+    assert "excluye el flete" in html
+    assert "Corte:" in html
+    assert "Fuente:" in html
+    assert 'href="https://alexanderhuth98.github.io/#proyectos"' in html
+    assert "Clientes y performance" not in html
+    assert "quality gates" not in html
+
+    assert dashboard.SEGMENT_LABELS["C_LOW_VALUE"] == "C · Bajo valor"
+    assert dashboard.SEGMENT_LABELS["UNKNOWN"] == "Sin categoría conocida"
+    assert dashboard.DIMENSION_LABELS["CATEGORIES"] == "Amplitud de categorías"
+    assert dashboard.DELIVERY_STATUS_LABELS["UNKNOWN"] == "Sin estado informado"
 
 
 def test_chart_html_applies_shared_layout_without_display_logo():
     figure = dashboard.px.line(pd.DataFrame({"x": [1, 2], "y": [2, 3]}), x="x", y="y")
     html = dashboard._chart_html(figure, False)
-    assert "displaylogo" in html
+    assert '"displaylogo": false' in html
+    assert '"displayModeBar": true' in html
+    assert '"scrollZoom": false' in html
+    assert '"doubleClick": "reset+autosize"' in html
+    assert '"responsive": true' in html
+    assert '"locale": "es-AR"' in html
+    assert "Escala autom\\u00e1tica" in html
+    assert "Restablecer ejes" in html
     assert config.SEGMENTATION_VERSION not in html
 
 
@@ -184,7 +275,7 @@ def test_export_all_publishes_real_tables_dashboard_manifest_and_portfolio(
         isolated_paths.outputs / "dashboard_clientes_ecommerce.html"
     )
     assert not staging.exists()
-    assert "Clientes y performance" in (
+    assert "Clientes y desempeño" in (
         isolated_paths.outputs / "dashboard_clientes_ecommerce.html"
     ).read_text(encoding="utf-8")
     assert (isolated_paths.outputs / "analytics_clientes_ecommerce.xlsx").is_file()
