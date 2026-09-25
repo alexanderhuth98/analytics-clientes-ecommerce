@@ -99,9 +99,7 @@ CATEGORY_LABELS = {
     "home_construction": "Construcción para el hogar",
     "housewares": "Artículos para el hogar",
     "industry_commerce_and_business": "Industria, comercio y negocios",
-    "kitchen_dining_laundry_garden_furniture": (
-        "Muebles de cocina, comedor, lavadero y jardín"
-    ),
+    "kitchen_dining_laundry_garden_furniture": ("Muebles de cocina, comedor, lavadero y jardín"),
     "la_cuisine": "Cocina",
     "luggage_accessories": "Equipaje y accesorios",
     "market_place": "Mercado en línea",
@@ -114,9 +112,7 @@ CATEGORY_LABELS = {
     "security_and_services": "Seguridad y servicios",
     "signaling_and_security": "Señalización y seguridad",
     "small_appliances": "Pequeños electrodomésticos",
-    "small_appliances_home_oven_and_coffee": (
-        "Pequeños electrodomésticos, hornos y café"
-    ),
+    "small_appliances_home_oven_and_coffee": ("Pequeños electrodomésticos, hornos y café"),
     "sports_leisure": "Deportes y tiempo libre",
     "stationery": "Librería",
     "tablets_printing_image": "Tabletas, impresión e imagen",
@@ -329,9 +325,7 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     )
     value_fig.update_xaxes(tickprefix="R$ ", tickformat=",.0f")
 
-    categories["Categoría"] = _translate(
-        categories["category_name"], CATEGORY_LABELS, "categorías"
-    )
+    categories["Categoría"] = _translate(categories["category_name"], CATEGORY_LABELS, "categorías")
     categories["GMV"] = categories["merchandise_gmv_brl"].map(_currency)
     categories["Pedidos"] = categories["orders"].map(_number)
     top_categories = categories.nlargest(12, "merchandise_gmv_brl").sort_values(
