@@ -2,16 +2,16 @@
 
 ## Estado
 
-La release `v1.0.0` publica activos binarios fuera del historial Git, siguiendo el mismo
+La release `v1.1.0` publica activos binarios fuera del historial Git, siguiendo el mismo
 criterio que el proyecto de pricing.
 
-## Activos de la version `v1.0.0`
+## Activos de la version `v1.1.0`
 
 - `powerbi/AnalyticsClientes.pbix`
 - `outputs/analytics_clientes_ecommerce.xlsx`
 - `outputs/dashboard_clientes_ecommerce.html`
 - `outputs/dashboard_mobile.html`
-- `outputs/release-v1.0.0/SHA256SUMS.txt`
+- `outputs/release-v1.1.0/SHA256SUMS.txt`
 
 ## Contenido versionado
 
@@ -56,7 +56,7 @@ Si la politica local exige scripts firmados:
 type scripts\package_release.ps1 | powershell.exe -NoProfile -Command -
 ```
 
-Verifique `outputs/release-v1.0.0/SHA256SUMS.txt` y adjunte esos activos al Release.
+Verifique `outputs/release-v1.1.0/SHA256SUMS.txt` y adjunte esos activos al Release.
 
 ## Versionado
 
@@ -76,6 +76,11 @@ Verifique `outputs/release-v1.0.0/SHA256SUMS.txt` y adjunte esos activos al Rele
 - Lista y SHA-256 de activos binarios.
 - Licencia MIT del proyecto y licencia/terminos de fuente verificados en ese momento.
 - Limitaciones y cualquier cambio de metodologia.
+
+## Release anterior
+
+La release inmutable [`v1.0.0`](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/releases/tag/v1.0.0)
+conserva los artefactos publicados antes de la mejora de presentación y metadata.
 
 ## GitHub Pages
 
