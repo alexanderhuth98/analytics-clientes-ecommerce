@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import duckdb
@@ -133,6 +134,54 @@ def test_render_dashboard_filters_suppressed_data_and_supports_mobile():
         assert internal_code not in desktop
 
 
+def test_dashboard_metadata_uses_public_canonical_on_desktop_and_mobile():
+    canonical = "https://alexanderhuth98.github.io/analytics-clientes-ecommerce/"
+    image = "https://alexanderhuth98.github.io/assets/projects/ecommerce-dashboard.png"
+    required_tags = {
+        f'<meta name="description" content="{dashboard.DASHBOARD_DESCRIPTION}">',
+        '<meta name="author" content="Alexander Huth">',
+        '<meta name="theme-color" content="#0b1111">',
+        f'<link rel="canonical" href="{canonical}">',
+        '<meta property="og:type" content="website">',
+        '<meta property="og:locale" content="es_AR">',
+        f'<meta property="og:title" content="{dashboard.DASHBOARD_TITLE}">',
+        f'<meta property="og:description" content="{dashboard.DASHBOARD_DESCRIPTION}">',
+        f'<meta property="og:url" content="{canonical}">',
+        f'<meta property="og:image" content="{image}">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        f'<meta name="twitter:title" content="{dashboard.DASHBOARD_TITLE}">',
+        f'<meta name="twitter:description" content="{dashboard.DASHBOARD_DESCRIPTION}">',
+        f'<meta name="twitter:image" content="{image}">',
+    }
+
+    for html in (
+        dashboard.render_dashboard(_dashboard_tables()),
+        dashboard.render_dashboard(_dashboard_tables(), mobile=True),
+    ):
+        assert all(tag in html for tag in required_tags)
+        assert html.count('rel="canonical"') == 1
+        assert "mobile.html" not in html.partition("</head>")[0]
+
+
+def test_versioned_site_artifacts_match_current_renderer():
+    project_root = Path(__file__).resolve().parents[1]
+    table_names = (
+        "executive_monthly",
+        "customer_segment_summary",
+        "category_performance",
+        "delivery_experience",
+    )
+    tables = {
+        name: pd.read_csv(project_root / "portfolio_data" / f"{name}.csv") for name in table_names
+    }
+    plotly_id = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+
+    for filename, mobile in (("index.html", False), ("mobile.html", True)):
+        expected = dashboard.render_dashboard(tables, mobile=mobile)
+        actual = (project_root / "site" / filename).read_text(encoding="utf-8")
+        assert plotly_id.sub("PLOTLY_ID", actual) == plotly_id.sub("PLOTLY_ID", expected)
+
+
 def test_all_versioned_public_categories_have_natural_spanish_labels():
     project_root = Path(__file__).resolve().parents[1]
     categories = pd.read_csv(project_root / "portfolio_data/category_performance.csv")
@@ -229,26 +278,28 @@ def test_write_excel_escapes_formula_injection_and_truncates_sheet_names(tmp_pat
     assert sheet["B2"].value == 1
 
 
-def test_public_tables_remove_entire_non_publishable_rows():
+def test_public_tables_filter_controlled_rows_and_keep_safe_monthly_aggregates():
     tables = {
-        "controlled": pd.DataFrame(
+        "seller_performance": pd.DataFrame(
             [
                 {"seller_id": "safe", "metric": 30, "coverage_status": "PUBLISHABLE"},
                 {"seller_id": "small", "metric": 1, "coverage_status": "SUPPRESSED"},
                 {"seller_id": "other", "metric": 5, "coverage_status": "DIRECTIONAL"},
             ]
         ),
-        "uncontrolled": pd.DataFrame([{"metric": 10}]),
+        "executive_monthly": pd.DataFrame([{"month_start": "2016-12-01", "orders": 1}]),
     }
 
     public = export._public_tables(tables)
 
-    assert public["controlled"].to_dict("records") == [
+    assert public["seller_performance"].to_dict("records") == [
         {"seller_id": "safe", "metric": 30, "coverage_status": "PUBLISHABLE"}
     ]
-    assert public["uncontrolled"].equals(tables["uncontrolled"])
-    assert public["controlled"] is not tables["controlled"]
-    assert public["uncontrolled"] is not tables["uncontrolled"]
+    assert public["executive_monthly"].to_dict("records") == [
+        {"month_start": "2016-12-01", "orders": 1}
+    ]
+    assert public["seller_performance"] is not tables["seller_performance"]
+    assert public["executive_monthly"] is not tables["executive_monthly"]
 
 
 def test_export_all_publishes_real_tables_dashboard_manifest_and_portfolio(

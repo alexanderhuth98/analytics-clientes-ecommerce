@@ -1,6 +1,7 @@
 # Analytics de clientes e-commerce
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Codigo y docs: MIT](https://img.shields.io/badge/codigo%20%26%20docs-MIT-green.svg)](LICENSE)
+[![Datos derivados: CC BY-NC-SA 4.0](https://img.shields.io/badge/datos%20derivados-CC%20BY--NC--SA%204.0-blue.svg)](DATA_LICENSE.md)
 [![CI](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml)
 [![Pages](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml)
 
@@ -8,13 +9,25 @@ Caso de Data Analytics sobre el **Brazilian E-Commerce Public Dataset by Olist**
 Construye una vista reproducible de clientes, valor, volumen, amplitud de compra y
 experiencia de entrega, con DuckDB, SQL y artefactos agregados aptos para portfolio.
 
-El [dashboard publico](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
-se despliega desde `site/` mediante GitHub Pages; la captura inferior documenta el build
-de referencia.
+**Accesos:** [Dashboard](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
+| [Release/PBIX](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/releases/latest)
+| [Validación](reports/2018-10-17/validation_report.md)
+| [Portfolio](https://alexanderhuth98.github.io/#proyectos)
 
-![Dashboard ejecutivo](docs/images/dashboard_overview.png)
+## Caso en 30 segundos
 
-## Impacto en 60 segundos
+- **Problema:** construir una vista de cliente sin confundir `customer_id` con
+  `customer_unique_id` ni duplicar métricas por el fanout de items, pagos y reviews.
+- **Hallazgo:** `93.358` clientes elegibles generaron `R$ 13,22 M`; el segmento A concentró
+  `80,6%` del GMV y la review ponderada fue `4,29` a tiempo frente a `2,57` con demora.
+- **Decisión:** agregar cada relación 1:N al grano pedido antes de los joins y aplicar el
+  umbral `<30` solo en marts comparativos sujetos a `coverage_status`.
+- **Limitación:** ABC no mide fidelidad ni CLV, y la relación entre demora y review no
+  demuestra causalidad; el dataset es histórico y cubre 2016-2018.
+
+[![Dashboard ejecutivo](docs/images/dashboard_overview.png)](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
+
+## Resultados verificados
 
 | Resultado | Hallazgo |
 |---|---|
@@ -45,8 +58,8 @@ de referencia.
   `customer_unique_id`.
 - Agrega items, pagos y reviews por pedido antes de unirlos para evitar fanout.
 - Segmenta clientes por valor ABC, unidades y cantidad de categorias conocidas.
-- Suprime comparaciones con menos de 30 clientes o pedidos, segun el mart, y excluye la
-  fila completa de los artefactos publicos.
+- En los marts comparativos con `coverage_status`, suprime grupos con menos de 30 clientes
+  o pedidos, segun el grano, y excluye la fila completa de los artefactos publicos.
 - Ejecuta 15 controles de integridad y conserva advertencias no bloqueantes.
 - Exporta ocho CSV agregados, Parquet, Excel, informes y dashboard HTML.
 - Alimenta Power BI solo con datos agregados; no publica filas de clientes o pedidos.
@@ -120,10 +133,11 @@ Kaggle/Olist -> ZIP + SHA-256 -> CSV raw -> ingest transaccional -> DuckDB
 - La ingesta publica una nueva base solo despues de validar los nueve contratos.
 - El build de tablas y controles ocurre dentro de una transaccion DuckDB.
 - Los CSV publicos son agregados; raw, warehouse, Parquet y binarios se ignoran en Git.
-- `outputs/` conserva localmente los marts completos para control. `portfolio_data/` y
-  `site/` reciben una vista publica separada que admite exclusivamente filas
-  `coverage_status = PUBLISHABLE`; cualquier otro estado se excluye con identificadores
-  y metricas, sin reemplazar valores por cero.
+- `outputs/` conserva localmente los marts completos para control. En las tablas sujetas a
+  `coverage_status`, `portfolio_data/` y `site/` solo reciben filas `PUBLISHABLE`; cualquier
+  otro estado se excluye con identificadores y metricas, sin reemplazar valores por cero.
+- Los agregados ejecutivos mensuales no contienen identificadores de grupo ni
+  `coverage_status`; pueden conservar periodos de bajo volumen sin exponer filas fuente.
 
 Consulte [arquitectura](docs/architecture.md) para granos y flujo completo.
 
@@ -141,7 +155,7 @@ Consulte [arquitectura](docs/architecture.md) para granos y flujo completo.
 | [Operaciones](docs/operations.md) | Ejecucion, validacion, CI y recuperacion. |
 | [Releases](docs/releases.md) | Checklist de empaquetado y publicacion. |
 | [Datos agregados](portfolio_data/) | Ocho CSV anonimizados para revision y Power BI. |
-| [Dashboard web](site/index.html) | Resultado ejecutivo HTML listo para GitHub Pages. |
+| [Dashboard web](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/) | Resultado ejecutivo HTML publicado en GitHub Pages. |
 | [Proyecto Power BI](powerbi/AnalyticsClientes.pbip) | PBIP editable; el PBIX se publica como activo de GitHub Release. |
 | [Informe ejecutivo](reports/2018-10-17/resumen_ejecutivo.md) | Sintesis del build de referencia. |
 | [Validacion](reports/2018-10-17/validation_report.md) | Resultado de los 15 controles. |
@@ -184,8 +198,8 @@ Consulte [acceso a datos](docs/data_access.md) antes de redistribuir la fuente.
 - `pages.yml` publica el contenido ya generado de `site/`; no reconstruye datos ni
   descarga la fuente.
 - Dependabot revisa dependencias de GitHub Actions y del ecosistema Python.
-- La suite contiene `50` pruebas aisladas de internet y del warehouse local.
-- La verificacion final alcanzo `93,5%` de cobertura total; CI bloquea valores inferiores
+- La suite contiene `54` pruebas aisladas de internet y del warehouse local.
+- La verificacion final alcanzo `93,7%` de cobertura total; CI bloquea valores inferiores
   al `80%`.
 
 ## Limitaciones
@@ -196,16 +210,19 @@ Consulte [acceso a datos](docs/data_access.md) antes de redistribuir la fuente.
 - La baja recurrencia observada no permite presentar ABC como segmentacion de fidelidad.
 - Las reviews faltantes pueden introducir sesgo de seleccion.
 - La relacion entre demora y review es descriptiva, no causal.
-- Los grupos bajo el threshold de 30 se suprimen; sus filas completas no se publican y
-  sus valores no se reemplazan por cero.
+- El threshold de 30 aplica solo a marts comparativos con `coverage_status`; sus grupos no
+  publicables se excluyen por fila completa. Los agregados mensuales sin identificadores
+  pueden incluir periodos de bajo volumen.
 
 ## Fuente y licencias
 
 - Fuente: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), publicado en Kaggle por Olist.
 - Evidencia de procedencia: `manifests/raw_sources.jsonl` conserva URL de descarga,
   SHA-256 y lista de archivos del snapshot usado.
-- La [metadata de Kaggle](https://www.kaggle.com/api/v1/datasets/view/olistbr/brazilian-ecommerce), consultada nuevamente el `2026-08-27`, expone `CC BY-NC-SA 4.0` en
-  `licenseName`. Esa declaracion corresponde a la plataforma/fuente y debe volver a
-  verificarse antes de redistribuir datos, porque la metadata externa puede cambiar.
-- Licencia del codigo y la documentacion de este proyecto: [MIT](LICENSE). MIT no
-  relicencia los datos de Olist ni reemplaza las condiciones declaradas por Kaggle.
+- Licencia del codigo y la documentacion de este proyecto: [MIT](LICENSE).
+- Los CSV derivados de `portfolio_data/` se redistribuyen bajo
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) segun la
+  [metadata de Kaggle](https://www.kaggle.com/api/v1/datasets/view/olistbr/brazilian-ecommerce)
+  consultada el `2026-08-27`. Atribucion, cambios y condiciones en
+  [DATA_LICENSE.md](DATA_LICENSE.md); MIT no cubre esos datos.
+- Verifique los terminos vigentes de la fuente antes de reutilizar o redistribuir datos.

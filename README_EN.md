@@ -1,8 +1,31 @@
 # E-commerce customer analytics
 
+[![Code and docs: MIT](https://img.shields.io/badge/code%20%26%20docs-MIT-green.svg)](LICENSE)
+[![Derived data: CC BY-NC-SA 4.0](https://img.shields.io/badge/derived%20data-CC%20BY--NC--SA%204.0-blue.svg)](DATA_LICENSE.md)
+[![CI](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/ci.yml)
+[![Pages](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml/badge.svg)](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/actions/workflows/pages.yml)
+
 Reproducible analytics case built on the **Brazilian E-Commerce Public Dataset by
 Olist**. It models customer value, item volume, category breadth and delivery experience
 with DuckDB and SQL, then publishes aggregate portfolio datasets, reports and dashboards.
+
+**Explore:** [Dashboard](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
+| [Release/PBIX](https://github.com/alexanderhuth98/analytics-clientes-ecommerce/releases/latest)
+| [Validation](reports/2018-10-17/validation_report.md)
+| [Portfolio](https://alexanderhuth98.github.io/#proyectos)
+
+## Case in 30 seconds
+
+- **Problem:** build a customer view without confusing order-scoped `customer_id` with
+  `customer_unique_id`, or multiplying metrics through item, payment and review fanout.
+- **Finding:** `93,358` eligible customers generated `R$ 13.22M`; segment A accounted for
+  `80.6%` of GMV, while weighted review was `4.29` on time versus `2.57` when late.
+- **Decision:** aggregate every one-to-many relationship to order grain before joins and
+  apply the `<30` threshold only to comparative marts governed by `coverage_status`.
+- **Limitation:** ABC is not loyalty or CLV, and the delay-review relationship is not
+  causal; this is a historical 2016-2018 dataset.
+
+[![Executive dashboard](docs/images/dashboard_overview.png)](https://alexanderhuth98.github.io/analytics-clientes-ecommerce/)
 
 **Reference build:** `4877d616-bad1-48d6-bffb-17005001d164`  
 **As-of date:** `2018-10-17`
@@ -43,19 +66,23 @@ See the [documentation index](docs/README.md), [methodology](docs/methodology.md
 The local `outputs/` directory retains complete aggregate marts for analytical controls.
 Versioned `portfolio_data/` CSVs and generated `site/` HTML are built from a separate
 public view: for every table with `coverage_status`, only rows exactly marked
-`PUBLISHABLE` are included. Rows for groups below the applicable threshold of 30
-customers or orders are removed in full, including their labels/identifiers and metrics;
-their values are not replaced with zero. Raw Olist rows, review text, ZIP files, DuckDB,
-Parquet, Excel, PBIX/PBIT files and credentials are not public artifacts.
+`PUBLISHABLE` are included. In those controlled marts, rows below the applicable threshold
+of 30 customers or orders are removed in full, including labels/identifiers and metrics;
+their values are not replaced with zero. Monthly executive aggregates have neither group
+identifiers nor `coverage_status` and may retain low-volume periods without exposing
+source rows. Raw Olist rows, review text, ZIP files, DuckDB, Parquet, Excel, PBIX/PBIT
+files and credentials are not public artifacts.
 
 The canonical public repository is
 [GitHub](https://github.com/alexanderhuth98/analytics-clientes-ecommerce). GitLab is used
 only as a private development origin and is not the package's public repository URL.
 
-The repository includes 50 tests. CI enforces Ruff, pytest with the declared 80% coverage
+The repository includes 54 tests. CI enforces Ruff, pytest with the declared 80% coverage
 threshold, dependency auditing and secret scanning.
 
-Project code and documentation are MIT licensed. The Kaggle metadata endpoint still
-reported `CC BY-NC-SA 4.0` for the source when checked on `2026-08-27`; this records
-Kaggle's displayed metadata and is not a legal guarantee. Verify the current source terms
-before redistributing data. MIT does not relicense the Olist dataset.
+Project code and documentation are [MIT licensed](LICENSE). Derived CSVs in
+`portfolio_data/` are redistributed under
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) according to Kaggle
+metadata checked on `2026-08-27`. See [data licensing](DATA_LICENSE.md) for attribution,
+changes and reuse conditions; MIT does not cover those data. Verify the current source
+terms before reuse or redistribution.
