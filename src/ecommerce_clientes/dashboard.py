@@ -4,6 +4,15 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+DASHBOARD_TITLE = "Clientes y desempeño e-commerce"
+DASHBOARD_DESCRIPTION = (
+    "Caso reproducible de analytics e-commerce sobre clientes, concentración de valor y "
+    "experiencia de entrega con datos públicos de Olist."
+)
+DASHBOARD_AUTHOR = "Alexander Huth"
+DASHBOARD_URL = "https://alexanderhuth98.github.io/analytics-clientes-ecommerce/"
+DASHBOARD_IMAGE_URL = "https://alexanderhuth98.github.io/assets/projects/ecommerce-dashboard.png"
+
 COLORS = {
     "bg": "#0b1111",
     "bg_deep": "#080d0d",
@@ -410,7 +419,23 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<title>Clientes y desempeño e-commerce</title>
+<meta name="description" content="{DASHBOARD_DESCRIPTION}">
+<meta name="author" content="{DASHBOARD_AUTHOR}">
+<meta name="theme-color" content="{COLORS["bg"]}">
+<link rel="canonical" href="{DASHBOARD_URL}">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="{DASHBOARD_TITLE}">
+<meta property="og:description" content="{DASHBOARD_DESCRIPTION}">
+<meta property="og:url" content="{DASHBOARD_URL}">
+<meta property="og:image" content="{DASHBOARD_IMAGE_URL}">
+<meta property="og:image:alt" content="Dashboard de clientes y desempeño e-commerce">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{DASHBOARD_TITLE}">
+<meta name="twitter:description" content="{DASHBOARD_DESCRIPTION}">
+<meta name="twitter:image" content="{DASHBOARD_IMAGE_URL}">
+<meta name="twitter:image:alt" content="Dashboard de clientes y desempeño e-commerce">
+<title>{DASHBOARD_TITLE}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root {{ --bg:#0b1111; --bg-deep:#080d0d; --surface:#171d1e; --surface-raised:#1b2223;

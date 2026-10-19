@@ -23,9 +23,11 @@ dependencies = [
 ecommerce-clientes = "ecommerce_clientes.pipeline:main"
 
 [project.urls]
+Homepage = "https://alexanderhuth98.github.io/analytics-clientes-ecommerce/"
 Repository = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce"
 Documentation = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce/tree/main/docs"
 Issues = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce/issues"
+Releases = "https://github.com/alexanderhuth98/analytics-clientes-ecommerce/releases/latest"
 
 [project.optional-dependencies]
 dev = [
