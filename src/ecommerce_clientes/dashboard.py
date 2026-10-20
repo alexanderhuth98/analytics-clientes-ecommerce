@@ -399,17 +399,24 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     value_fig.update_layout(showlegend=False)
     delivery_fig.update_layout(showlegend=False)
     charts = [monthly_fig, value_fig, category_fig, delivery_fig]
-    chart_blocks = [_chart_html(figure, index == 0) for index, figure in enumerate(charts)]
+    chart_blocks = [_chart_html(figure, False) for figure in charts]
+    chart_labels = (
+        "GMV mensual de pedidos entregados",
+        "Concentración de GMV por segmento de valor",
+        "Categorías con mayor GMV publicable",
+        "Calificación promedio según cumplimiento de entrega",
+    )
     panel_blocks = "".join(
         (
-            '<article class="panel">'
+            '<section class="panel">'
+            f'<h2 class="sr-only">{label}</h2>'
             f'<div class="chart">{chart}</div>'
             '<div class="panel-actions">'
             '<button type="button" class="reset-view" aria-label="Restablecer vista del gráfico">'
             "Restablecer vista"
-            "</button></div></article>"
+            "</button></div></section>"
         )
-        for chart in chart_blocks
+        for chart, label in zip(chart_blocks, chart_labels, strict=True)
     )
 
     columns = "1fr" if mobile else "repeat(2,minmax(0,1fr))"
@@ -421,7 +428,11 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
 <meta name="color-scheme" content="dark">
 <meta name="description" content="{DASHBOARD_DESCRIPTION}">
 <meta name="author" content="{DASHBOARD_AUTHOR}">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="{COLORS["bg"]}">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
 <link rel="canonical" href="{DASHBOARD_URL}">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_AR">
@@ -436,6 +447,7 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
 <meta name="twitter:image" content="{DASHBOARD_IMAGE_URL}">
 <meta name="twitter:image:alt" content="Dashboard de clientes y desempeño e-commerce">
 <title>{DASHBOARD_TITLE}</title>
+<script src="plotly.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root {{ --bg:#0b1111; --bg-deep:#080d0d; --surface:#171d1e; --surface-raised:#1b2223;
@@ -466,6 +478,10 @@ h1 {{ max-width:900px; margin:12px 0 12px; font-family:'Space Grotesk',sans-seri
 .panel {{ min-height:440px; min-width:0; overflow:hidden; }}
 .chart {{ min-width:0; }}
 .panel .plotly-graph-div,.panel .plot-container,.panel .svg-container {{ width:100% !important; max-width:100% !important; }}
+.sr-only {{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }}
+.dashboard-status {{ margin:0 0 16px; padding:12px 14px; color:var(--dim); background:var(--surface-soft); border:1px solid var(--border); font-size:12px; }}
+.dashboard-status:empty {{ display:none; }}
+.dashboard-status.error {{ color:var(--amber); border-color:rgba(243,206,98,.45); }}
 .panel-actions {{ display:flex; justify-content:flex-end; padding:0 16px 14px; }}
 .reset-view {{ min-height:42px; padding:9px 13px; color:var(--mint); font:600 11px 'IBM Plex Mono',monospace; letter-spacing:.04em; text-transform:uppercase; background:var(--surface-soft); border:1px solid var(--border-strong); border-radius:2px; cursor:pointer; }}
 .reset-view:hover {{ color:var(--bg-deep); background:var(--mint); }}
@@ -481,11 +497,13 @@ footer {{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px 
 </style>
 </head>
 <body><main>
+<noscript><p class="dashboard-status error">Este tablero necesita JavaScript para mostrar los gráficos interactivos.</p></noscript>
+<p id="dashboard-status" class="dashboard-status" role="status" aria-live="polite"></p>
 <header>
 <div class="eyebrow">Caso de analítica · Olist</div>
 <h1>Clientes y desempeño e-commerce</h1>
 <p class="subtitle">Segmentación de clientes por facturación, unidades y amplitud de categorías, con foco en concentración de valor y experiencia de entrega. El GMV considera únicamente artículos de pedidos entregados: excluye el flete, que se conserva como métrica separada en los datos exportados.</p>
-<div class="meta"><span>Corte: {as_of}</span><span>Fuente: conjunto público de comercio electrónico de Olist, Kaggle</span><a href="https://alexanderhuth98.github.io/#proyectos">Volver a proyectos</a></div>
+<div class="meta"><span>Corte: {as_of}</span><span>Fuente: conjunto público de comercio electrónico de Olist, Kaggle</span><a href="https://alexanderhuth98.github.io/#proyectos" data-goatcounter-click="back-to-portfolio-ecommerce">Volver a proyectos</a></div>
 </header>
 <section class="cards" aria-label="Indicadores principales">
 <div class="card"><span>GMV de artículos entregados</span><strong>{_money(total_gmv)}</strong></div>
@@ -498,14 +516,28 @@ footer {{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px 
 <footer><span>Fuente: conjunto público de comercio electrónico de Olist, Kaggle.</span><span>Proceso reproducible con DuckDB y controles de calidad.</span></footer>
 </main>
 <script>
+var dashboardStatus = document.getElementById('dashboard-status');
+if (!window.Plotly) {{
+  dashboardStatus.classList.add('error');
+  dashboardStatus.textContent = 'No se pudieron cargar los gráficos. Recargá la página para volver a intentarlo.';
+}}
 document.querySelectorAll('.reset-view').forEach(function (button) {{
   button.addEventListener('click', function () {{
     var graph = button.closest('.panel').querySelector('.plotly-graph-div');
     if (!graph || !window.Plotly) return;
     Plotly.relayout(graph, {{'xaxis.autorange': true, 'yaxis.autorange': true}}).then(function () {{
       Plotly.Plots.resize(graph);
+    }}).catch(function () {{
+      dashboardStatus.classList.add('error');
+      dashboardStatus.textContent = 'No se pudo restablecer la vista del gráfico.';
     }});
   }});
 }});
 </script>
+<script data-goatcounter="https://alexanderhuth98.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body></html>"""
+
+
+def render_not_found() -> str:
+    return """<!doctype html>
+<html lang="es-AR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="theme-color" content="#0b1111"><link rel="icon" href="/favicon.ico" sizes="any"><title>Página no encontrada | Analytics e-commerce</title><style>body{display:grid;min-height:100vh;margin:0;place-items:center;color:#edf1ef;background:#0b1111;font:16px/1.6 Arial,sans-serif}main{width:min(680px,calc(100% - 40px));padding:48px;background:#171d1e;border:1px solid rgba(158,246,229,.25)}p{color:#a5aeaa}a{color:#9ef6e5}h1{font-size:clamp(2.5rem,8vw,5rem);line-height:1}</style></head><body><main><strong>ERROR / 404</strong><h1>Página no encontrada.</h1><p>El recurso solicitado no existe o cambió de ubicación.</p><a href="https://alexanderhuth98.github.io/analytics-clientes-ecommerce/">Volver al dashboard</a></main><script data-goatcounter="https://alexanderhuth98.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script></body></html>\n"""

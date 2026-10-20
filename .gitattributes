@@ -1,1 +1,2 @@
 site/*.html linguist-generated=true
+site/plotly.min.js -diff linguist-generated=true

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import duckdb
 import pandas as pd
+from plotly.offline import get_plotlyjs
 
 from .config import (
     DATABASE_PATH,
@@ -16,7 +17,7 @@ from .config import (
     SITE_DIR,
     ensure_directories,
 )
-from .dashboard import render_dashboard
+from .dashboard import render_dashboard, render_not_found
 from .validate import validate
 
 EXPORT_TABLES = {
@@ -153,6 +154,7 @@ def export_all() -> ExportResult:
     mobile_html = render_dashboard(public_tables, mobile=True)
     (staging / "dashboard_clientes_ecommerce.html").write_text(desktop_html, encoding="utf-8")
     (staging / "dashboard_mobile.html").write_text(mobile_html, encoding="utf-8")
+    (staging / "plotly.min.js").write_text(get_plotlyjs(), encoding="utf-8")
     _write_excel(staging / "analytics_clientes_ecommerce.xlsx", tables)
 
     report = _executive_report(tables, validation.build_id, validation.as_of_date)
@@ -180,6 +182,9 @@ def export_all() -> ExportResult:
     SITE_DIR.mkdir(parents=True, exist_ok=True)
     (SITE_DIR / "index.html").write_text(desktop_html, encoding="utf-8")
     (SITE_DIR / "mobile.html").write_text(mobile_html, encoding="utf-8")
+    (SITE_DIR / "plotly.min.js").write_text(get_plotlyjs(), encoding="utf-8")
+    (SITE_DIR / "404.html").write_text(render_not_found(), encoding="utf-8")
+    (SITE_DIR / ".nojekyll").write_text("", encoding="utf-8")
     report_dir = PROJECT_ROOT / "reports" / validation.as_of_date
     report_dir.mkdir(parents=True, exist_ok=True)
     (report_dir / "resumen_ejecutivo.md").write_text(report, encoding="utf-8")

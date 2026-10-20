@@ -116,12 +116,17 @@ def test_render_dashboard_filters_suppressed_data_and_supports_mobile():
     assert "A tiempo" in desktop
     assert "Con demora" in desktop
     assert desktop.count('class="plotly-graph-div"') == 4
+    assert '<script src="plotly.min.js"></script>' in desktop
+    assert "plotly.js v" not in desktop
     assert desktop.count(">Restablecer vista</button>") == 4
     assert "Plotly.relayout" in desktop
     assert "'xaxis.autorange': true" in desktop
     assert "'yaxis.autorange': true" in desktop
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in desktop
     assert "grid-template-columns:1fr" in mobile
+    assert 'id="dashboard-status"' in desktop
+    assert "No se pudieron cargar los gráficos" in desktop
+    assert 'data-goatcounter="https://alexanderhuth98.goatcounter.com/count"' in desktop
 
     for internal_code in (
         '"A_HIGH_VALUE"',
@@ -152,6 +157,8 @@ def test_dashboard_metadata_uses_public_canonical_on_desktop_and_mobile():
         f'<meta name="twitter:title" content="{dashboard.DASHBOARD_TITLE}">',
         f'<meta name="twitter:description" content="{dashboard.DASHBOARD_DESCRIPTION}">',
         f'<meta name="twitter:image" content="{image}">',
+        '<link rel="icon" href="/favicon.ico" sizes="any">',
+        '<meta name="referrer" content="strict-origin-when-cross-origin">',
     }
 
     for html in (
@@ -333,6 +340,9 @@ def test_export_all_publishes_real_tables_dashboard_manifest_and_portfolio(
     assert (isolated_paths.outputs / "quality_checks.parquet").is_file()
     assert (isolated_paths.site / "index.html").is_file()
     assert (isolated_paths.site / "mobile.html").is_file()
+    assert (isolated_paths.site / "plotly.min.js").stat().st_size > 0
+    assert (isolated_paths.site / "404.html").is_file()
+    assert (isolated_paths.site / ".nojekyll").is_file()
     assert len(list(isolated_paths.portfolio.glob("*.csv"))) == 8
     assert (isolated_paths.root / "reports/2018-01-01/resumen_ejecutivo.md").is_file()
 
