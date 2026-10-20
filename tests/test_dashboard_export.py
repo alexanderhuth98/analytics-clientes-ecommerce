@@ -157,7 +157,7 @@ def test_dashboard_metadata_uses_public_canonical_on_desktop_and_mobile():
         f'<meta name="twitter:title" content="{dashboard.DASHBOARD_TITLE}">',
         f'<meta name="twitter:description" content="{dashboard.DASHBOARD_DESCRIPTION}">',
         f'<meta name="twitter:image" content="{image}">',
-        '<link rel="icon" href="/favicon.ico" sizes="any">',
+        '<link rel="icon" href="https://alexanderhuth98.github.io/favicon.ico" sizes="any">',
         '<meta name="referrer" content="strict-origin-when-cross-origin">',
     }
 
