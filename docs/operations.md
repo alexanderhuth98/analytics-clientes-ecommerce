@@ -4,6 +4,7 @@
 
 - Python `>=3.11,<3.13`.
 - `uv` para resolver el lockfile.
+- Node.js `24` y npm para las pruebas de navegador.
 - Acceso a Kaggle o un ZIP local con el hash esperado.
 - Power BI Desktop solo para abrir/refrescar el proyecto PBIP; no es requisito del
   pipeline Python.
@@ -55,20 +56,28 @@ uv run ruff check .
 uv run ruff format --check .
 uv run pytest --cov=ecommerce_clientes --cov-report=term-missing --cov-report=xml
 uv run ecommerce-clientes validate
+npm ci
+npx playwright install chromium
+npm run test:e2e
 ```
 
-El proyecto declara `fail_under = 80` para cobertura y mantiene 54 pruebas versionadas.
-La CI ejecuta la misma suite y debe permanecer roja si lint, tests o cobertura fallan.
+El proyecto declara `fail_under = 80` para cobertura. La CI ejecuta la misma suite y debe
+permanecer roja si lint, tests, cobertura o los contratos del dashboard fallan. Playwright
+levanta `site/` con un servidor local basado en `Python http.server`, prueba Chromium desktop y movil, conserva trazas
+y capturas solo ante fallas y publica los diagnosticos durante 7 dias. Para probar un sitio ya
+desplegado sin iniciar el servidor local, defina `E2E_BASE_URL` con la URL base terminada en `/`.
 
 La validacion analitica si tiene evidencia publicada: 15 controles, 0 fallas `HIGH` y 4
 advertencias `MEDIUM` en `reports/2018-10-17/validation_report.md`.
 
 ## CI
 
-`ci.yml` tiene dos responsabilidades:
+`ci.yml` tiene tres responsabilidades independientes:
 
 - Calidad: instala desde `uv.lock`, ejecuta Ruff y pytest con cobertura, exporta el lock y
   lo audita con `pip-audit`.
+- E2E (Chromium): instala desde `package-lock.json` y ejecuta los proyectos desktop y movil
+  contra los artefactos versionados de `site/`.
 - Secretos: Gitleaks revisa el historial disponible con contenido redactado.
 
 La auditoria de dependencias y el scan de secretos reducen riesgo, pero no garantizan
@@ -79,7 +88,9 @@ ausencia de vulnerabilidades o credenciales. Un hallazgo requiere revision human
 `pages.yml` publica exclusivamente `site/` en pushes a `main` o por ejecucion manual. No
 descarga Olist, no reconstruye el warehouse y no necesita secretos Kaggle. El dashboard
 publico esta disponible en <https://alexanderhuth98.github.io/analytics-clientes-ecommerce/>;
-las variantes desktop y movil declaran esa URL principal como canonical.
+las variantes desktop y movil declaran esa URL principal como canonical. Despues de cada
+deploy, el workflow usa la URL emitida por GitHub Pages para ejecutar un smoke test de
+produccion en Chromium; no comprueba la disponibilidad de Google Fonts ni GoatCounter.
 
 El repositorio publico canonico es
 `https://github.com/alexanderhuth98/analytics-clientes-ecommerce`. El remoto GitLab de la

@@ -5,6 +5,7 @@ from pathlib import Path
 import duckdb
 import openpyxl
 import pandas as pd
+import pytest
 
 from ecommerce_clientes import build, config, dashboard, export, ingest
 
@@ -96,6 +97,66 @@ def test_display_helpers_use_brazilian_formatting():
     assert dashboard._number(12345) == "12.345"
     assert dashboard._decimal(4.25) == "4,25"
     assert dashboard._date("2018-02-01") == "01/02/2018"
+
+
+@pytest.mark.parametrize("value", [None, float("nan"), float("inf"), float("-inf")])
+def test_display_helpers_apply_explicit_missing_data_policy(value):
+    assert dashboard._money(value) == "Sin datos"
+    assert dashboard._currency(value) == "Sin datos"
+    assert dashboard._number(value) == "Sin datos"
+    assert dashboard._decimal(value) == "Sin datos"
+    assert "R$ nan" not in dashboard._currency(value)
+
+
+def test_render_dashboard_never_publishes_non_finite_currency_and_handles_zero_reviews():
+    tables = _dashboard_tables()
+    tables["executive_monthly"]["merchandise_gmv_brl"] = [float("nan"), float("inf")]
+    tables["delivery_experience"]["avg_review_score"] = [None, float("inf")]
+    tables["delivery_experience"]["reviewed_orders"] = 0
+
+    html = dashboard.render_dashboard(tables)
+
+    assert "R$ nan" not in html
+    assert "R$ inf" not in html
+    assert "Sin datos" in html
+    assert "Los valores nulos o no finitos" in html
+    assert html.count('class="plotly-graph-div"') == 4
+
+
+def test_render_dashboard_rejects_missing_schema_and_unknown_public_translations():
+    missing_table = _dashboard_tables()
+    del missing_table["delivery_experience"]
+    with pytest.raises(ValueError, match="Falta la tabla requerida.*delivery_experience"):
+        dashboard.render_dashboard(missing_table)
+
+    missing_column = _dashboard_tables()
+    missing_column["executive_monthly"] = missing_column["executive_monthly"].drop(columns="units")
+    with pytest.raises(ValueError, match="Faltan columnas.*units"):
+        dashboard.render_dashboard(missing_column)
+
+    unknown_category = _dashboard_tables()
+    unknown_category["category_performance"].loc[0, "category_name"] = "new_private_code"
+    with pytest.raises(ValueError, match="Faltan traducciones de categorías: new_private_code"):
+        dashboard.render_dashboard(unknown_category)
+
+    missing_segment = _dashboard_tables()
+    missing_segment["customer_segment_summary"].loc[0, "segment_label"] = None
+    with pytest.raises(ValueError, match="Faltan traducciones de segmentos: Sin datos"):
+        dashboard.render_dashboard(missing_segment)
+
+
+def test_render_dashboard_keeps_fully_suppressed_public_views_empty_and_private():
+    tables = _dashboard_tables()
+    tables["category_performance"]["coverage_status"] = "SUPPRESSED"
+    tables["delivery_experience"]["coverage_status"] = "SUPPRESSED"
+
+    html = dashboard.render_dashboard(tables)
+
+    assert html.count('class="plotly-graph-div"') == 4
+    assert html.count("Sin datos publicables") == 2
+    assert "secret-small-cell" not in html
+    assert '"home"' not in html
+    assert '"ON_TIME"' not in html
 
 
 def test_render_dashboard_filters_suppressed_data_and_supports_mobile():
@@ -292,6 +353,8 @@ def test_public_tables_filter_controlled_rows_and_keep_safe_monthly_aggregates()
                 {"seller_id": "safe", "metric": 30, "coverage_status": "PUBLISHABLE"},
                 {"seller_id": "small", "metric": 1, "coverage_status": "SUPPRESSED"},
                 {"seller_id": "other", "metric": 5, "coverage_status": "DIRECTIONAL"},
+                {"seller_id": "unknown", "metric": 2, "coverage_status": "UNKNOWN"},
+                {"seller_id": "missing", "metric": 3, "coverage_status": None},
             ]
         ),
         "executive_monthly": pd.DataFrame([{"month_start": "2016-12-01", "orders": 1}]),

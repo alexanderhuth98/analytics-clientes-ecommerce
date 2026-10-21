@@ -1,3 +1,4 @@
+import math
 from html import escape
 
 import pandas as pd
@@ -205,25 +206,90 @@ PLOTLY_CONFIG = {
 }
 
 MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+MISSING_VALUE_LABEL = "Sin datos"
+
+DASHBOARD_SCHEMA = {
+    "executive_monthly": {
+        "month_start",
+        "as_of_date",
+        "merchandise_gmv_brl",
+        "delivered_orders",
+        "units",
+    },
+    "customer_segment_summary": {
+        "segment_dimension",
+        "segment_label",
+        "customers",
+        "merchandise_gmv_brl",
+    },
+    "category_performance": {
+        "category_name",
+        "merchandise_gmv_brl",
+        "orders",
+        "coverage_status",
+    },
+    "delivery_experience": {
+        "delivery_status",
+        "orders",
+        "avg_review_score",
+        "reviewed_orders",
+        "coverage_status",
+    },
+}
 
 
-def _money(value: float) -> str:
+def _is_finite(value: object) -> bool:
+    try:
+        return not pd.isna(value) and math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
+
+
+def _finite_sum(values: pd.Series) -> float:
+    numeric = pd.to_numeric(values, errors="coerce")
+    return float(numeric[numeric.map(_is_finite)].sum(min_count=1))
+
+
+def _validate_dashboard_schema(tables: dict[str, pd.DataFrame]) -> None:
+    for table_name, required_columns in DASHBOARD_SCHEMA.items():
+        if table_name not in tables:
+            raise ValueError(f"Falta la tabla requerida del dashboard: {table_name}")
+        missing_columns = sorted(required_columns - set(tables[table_name].columns))
+        if missing_columns:
+            raise ValueError(f"Faltan columnas en {table_name}: {', '.join(missing_columns)}")
+
+
+def _money(value: object) -> str:
+    if not _is_finite(value):
+        return MISSING_VALUE_LABEL
+    value = float(value)
     return f"R$ {value / 1_000_000:,.1f} M".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def _currency(value: float) -> str:
+def _currency(value: object) -> str:
+    if not _is_finite(value):
+        return MISSING_VALUE_LABEL
+    value = float(value)
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def _number(value: float) -> str:
+def _number(value: object) -> str:
+    if not _is_finite(value):
+        return MISSING_VALUE_LABEL
+    value = float(value)
     return f"{value:,.0f}".replace(",", ".")
 
 
-def _decimal(value: float) -> str:
+def _decimal(value: object) -> str:
+    if not _is_finite(value):
+        return MISSING_VALUE_LABEL
+    value = float(value)
     return f"{value:.2f}".replace(".", ",")
 
 
 def _date(value: object) -> str:
+    if value is None or pd.isna(value):
+        return MISSING_VALUE_LABEL
     parsed = pd.to_datetime(value, errors="coerce")
     return escape(parsed.strftime("%d/%m/%Y") if not pd.isna(parsed) else str(value))
 
@@ -235,7 +301,10 @@ def _month_label(value: object) -> str:
 
 def _translate(values: pd.Series, labels: dict[str, str], label_type: str) -> pd.Series:
     translated = values.map(labels)
-    missing = sorted(values[translated.isna()].dropna().astype(str).unique())
+    untranslated = values[translated.isna()]
+    missing = sorted(
+        {MISSING_VALUE_LABEL if pd.isna(value) else str(value) for value in untranslated}
+    )
     if missing:
         raise ValueError(f"Faltan traducciones de {label_type}: {', '.join(missing)}")
     return translated
@@ -276,6 +345,7 @@ def _chart_html(figure: go.Figure, include_plotlyjs: bool | str) -> str:
 
 
 def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> str:
+    _validate_dashboard_schema(tables)
     monthly = tables["executive_monthly"].copy()
     segments = tables["customer_segment_summary"].copy()
     categories = tables["category_performance"].query("coverage_status == 'PUBLISHABLE'").copy()
@@ -284,11 +354,16 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     monthly["month_start"] = pd.to_datetime(monthly["month_start"])
     monthly = monthly.sort_values("month_start")
     monthly["Mes"] = monthly["month_start"].map(_month_label)
+    monthly["merchandise_gmv_brl"] = monthly["merchandise_gmv_brl"].where(
+        monthly["merchandise_gmv_brl"].map(_is_finite)
+    )
     monthly["GMV"] = monthly["merchandise_gmv_brl"].map(_currency)
-    total_gmv = float(monthly["merchandise_gmv_brl"].sum())
-    delivered_orders = int(monthly["delivered_orders"].sum())
-    units = int(monthly["units"].sum())
-    customer_count = int(segments.query("segment_dimension == 'VALUE'")["customers"].sum())
+    total_gmv = _finite_sum(monthly["merchandise_gmv_brl"])
+    delivered_orders = _finite_sum(monthly["delivered_orders"])
+    units = _finite_sum(monthly["units"])
+    _translate(segments["segment_dimension"], DIMENSION_LABELS, "dimensiones de segmento")
+    _translate(segments["segment_label"], SEGMENT_LABELS, "segmentos")
+    customer_count = _finite_sum(segments.query("segment_dimension == 'VALUE'")["customers"])
     as_of = _date(monthly["as_of_date"].max())
 
     monthly_fig = px.line(
@@ -307,6 +382,9 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     monthly_fig.update_yaxes(tickprefix="R$ ", tickformat=",.0f")
 
     value = segments.query("segment_dimension == 'VALUE'").sort_values("merchandise_gmv_brl")
+    value["merchandise_gmv_brl"] = value["merchandise_gmv_brl"].where(
+        value["merchandise_gmv_brl"].map(_is_finite)
+    )
     value["Segmento"] = _translate(value["segment_label"], SEGMENT_LABELS, "segmentos")
     value["GMV"] = value["merchandise_gmv_brl"].map(_currency)
     value["Clientes"] = value["customers"].map(_number)
@@ -335,6 +413,9 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     value_fig.update_xaxes(tickprefix="R$ ", tickformat=",.0f")
 
     categories["Categoría"] = _translate(categories["category_name"], CATEGORY_LABELS, "categorías")
+    categories["merchandise_gmv_brl"] = categories["merchandise_gmv_brl"].where(
+        categories["merchandise_gmv_brl"].map(_is_finite)
+    )
     categories["GMV"] = categories["merchandise_gmv_brl"].map(_currency)
     categories["Pedidos"] = categories["orders"].map(_number)
     top_categories = categories.nlargest(12, "merchandise_gmv_brl").sort_values(
@@ -358,14 +439,23 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
     )
     category_fig.update_xaxes(tickprefix="R$ ", tickformat=",.0f")
 
-    delivery["weighted_review"] = delivery["avg_review_score"] * delivery["reviewed_orders"]
+    valid_reviews = delivery["avg_review_score"].map(_is_finite) & delivery["reviewed_orders"].map(
+        _is_finite
+    )
+    valid_reviews &= delivery["reviewed_orders"] > 0
+    delivery["reviewed_weight"] = delivery["reviewed_orders"].where(valid_reviews, 0)
+    delivery["weighted_review"] = (
+        delivery["avg_review_score"].where(valid_reviews, 0) * delivery["reviewed_weight"]
+    )
     delivery_summary = delivery.groupby("delivery_status", as_index=False).agg(
         orders=("orders", "sum"),
-        reviewed_orders=("reviewed_orders", "sum"),
+        reviewed_orders=("reviewed_weight", "sum"),
         weighted_review=("weighted_review", "sum"),
     )
     delivery_summary["avg_review_score"] = (
-        delivery_summary["weighted_review"] / delivery_summary["reviewed_orders"]
+        delivery_summary["weighted_review"]
+        .div(delivery_summary["reviewed_orders"])
+        .where(delivery_summary["reviewed_orders"] > 0)
     )
     delivery_summary = delivery_summary.sort_values("orders", ascending=False)
     delivery_summary["Entrega"] = _translate(
@@ -395,6 +485,17 @@ def render_dashboard(tables: dict[str, pd.DataFrame], mobile: bool = False) -> s
         )
     )
     delivery_fig.update_yaxes(range=[0, 5], dtick=1)
+
+    for frame, figure in ((top_categories, category_fig), (delivery_summary, delivery_fig)):
+        if frame.empty:
+            figure.add_annotation(
+                text="Sin datos publicables",
+                x=0.5,
+                y=0.5,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+            )
 
     value_fig.update_layout(showlegend=False)
     delivery_fig.update_layout(showlegend=False)
@@ -512,7 +613,7 @@ footer {{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px 
 <div class="card"><span>Unidades entregadas</span><strong>{_number(units)}</strong></div>
 </section>
 <section class="grid" aria-label="Visualizaciones analíticas">{panel_blocks}</section>
-<aside class="note"><strong>Cómo leerlo.</strong> ABC describe la concentración histórica del GMV dentro del corte. No mide rentabilidad, fidelidad ni potencial causal. Los grupos con cobertura insuficiente se excluyen por completo de la publicación.</aside>
+<aside class="note"><strong>Cómo leerlo.</strong> ABC describe la concentración histórica del GMV dentro del corte. No mide rentabilidad, fidelidad ni potencial causal. Los grupos con cobertura insuficiente se excluyen por completo de la publicación. Los valores nulos o no finitos se muestran como “Sin datos” y no se convierten en cero.</aside>
 <footer><span>Fuente: conjunto público de comercio electrónico de Olist, Kaggle.</span><span>Proceso reproducible con DuckDB y controles de calidad.</span></footer>
 </main>
 <script>
